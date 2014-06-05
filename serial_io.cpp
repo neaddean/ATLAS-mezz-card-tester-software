@@ -173,7 +173,8 @@ int SerialIO::Writeln(const char * str, bool CompleteLine) const
 }
 
 
-int  SerialIO::Read(char * buffer,size_t bufferSize) const{
+int  SerialIO::Read(char * buffer,size_t bufferSize) const
+{
 
   //If there is a valid FD, call write and return the result
   if(fd > 0)
@@ -182,5 +183,24 @@ int  SerialIO::Read(char * buffer,size_t bufferSize) const{
     }
   //if there is a bad fd, return -2 
   //(we don't return -1, since that would mix this with a system error with an errno)
+  return -2;
+}
+
+int  SerialIO::Readln(char * buffer) const 
+{
+  char tempc;
+  int i = 0;
+  if(fd > 0)
+    {
+      while (1) {
+	read(fd, &tempc, 1);
+	if( tempc == '>')
+	  {
+	    buffer[i-1] = '\0';
+	    return i-1;
+	  }
+        buffer[i++] = tempc;
+      }
+    }
   return -2;
 }

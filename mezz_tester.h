@@ -8,6 +8,10 @@
 #define OFF 2
 #define RESET 3
 
+#define FIFO_EMPTY 1
+#define FIFO_FULL 2
+#define FIFO_ALMOST_FULL 3
+
 #define RFIFO_EMPTY 1
 #define RFIFO_FULL 2
 
@@ -27,24 +31,23 @@
 
 typedef struct TDCStatus_s 
 {
-  int rfifo;
-  int error_flags;
-  int tfifo;
-  int tfifo_occupancy;
-  int coarse_counter;
+int rfifo;
+int error_flags;
+int tfifo;
+int tfifo_occupancy;
+int coarse_counter;
 } TDCStatus_s;
 
 class MezzTester
 {
- public:
-  MezzTester(char* device_name);
-  MezzTester(int TDC[15], int ASD[10], int DAC[4], char* device_name, 
-	     int ChannelMask = 0x000);
-  ~MezzTester();
+public:
+MezzTester(char* device_name);
+MezzTester(int TDC[15], int ASD[10], int DAC[4], char* device_name, 
+	     int ChannelMask = 0x000000);
+~MezzTester();
 
-  void Power(int pwr);
+void Power(int pwr);
   
-  TDCStatus_s GetStatus();
 void SetTDCReg(int n, int value) {TDCRegs[n]=value;}
 int  GetTDCReg(int n) {return TDCRegs[n];}
 void SetASDReg(int n, int value) {ASDRegs[n]=value;}
@@ -55,15 +58,17 @@ void SetAllDAC(int value) {for (int i=0; i<DAC_REG_NUM; i++)
 int  GetDAC(int n) {return DACRegs[n];}
 int  GetChannelMask() {return ChannelMask;}
 void SetChannelMask(int mask) {ChannelMask=mask;};
-  void Update();
 
-  void TDCcmd(int cmd);
-  void TDCBCR(int n);
-  void ReadFIFO(char * buffer);
-  int FIFOFlags();
-  void ResetFIFO();
+TDCStatus_s GetStatus();
+void Update();
+
+void TDCcmd(int cmd);
+void TDCBCR(int n);
+void ReadFIFO(char * buffer);
+int FIFOFlags();
+void ResetFIFO();
   
- private:
+private:
 void WriteReg(int Reg[], int RegSize, const char * cmd);
   
 SerialIO serial;
