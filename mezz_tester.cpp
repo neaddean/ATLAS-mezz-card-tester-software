@@ -1,8 +1,10 @@
 #include <iostream>
 #include <mezz_tester.h>
 #include <cstring>
+#include <stdlib.h>
+#include <errno.h>
 
-
+int AtoH(char);
 
 MezzTester::MezzTester(char* device_name)
 {
@@ -59,6 +61,7 @@ MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], char* device_name,
 
 MezzTester::~MezzTester()
 {
+  Power(OFF);
   serial.Close();
   printf("MezzTester Offline.\n");
 }
@@ -69,22 +72,93 @@ void MezzTester::Power(int pwr)
     {
     case ON: serial.Writeln("power_on"); break;
     case OFF: serial.Writeln("power_off"); break;
-    case RESET: Power(OFF); sleep(1); Power(ON);
+    case RESET: 
+      serial.Writeln("reset");      
+      Power(OFF); sleep(1); Power(ON);
       serial.Writeln("gpio");
       ResetFIFO();  break;
     }
 }
 
-TDCStatus_s MezzTester::GetStatus()
+void MezzTester::GetStatus(TDCStatus_s * TDCStatus)
 {
-  TDCStatus_s nothing;
-  char buffer[256];
-  buffer[255] = 0x00;
+  //char buffer[6][10];
+  char buffer[10];
+  int statusbuf[6];
+  
+  serial.Writeln(" ");
+  serial.Writeln("jts", false);
 
-  serial.Write("jts");
-  serial.Read(buffer, 255);
-  printf("TDC status registers :\n %s", buffer);
-  return nothing;
+  memset(statusbuf, 0, 6);
+  printf("------ASCII : HEX------\n");
+  for (int i=0; i<6; i++)
+    {
+      serial.Readln(buffer, 10, '\n');
+      for (int k=0; k<3; k++)
+	statusbuf[i] |= (AtoH(buffer[k]) << (2-k)*4);
+      printf("%d : %s : %04X\n", i, buffer, statusbuf[i]);
+    }
+
+  // printf("------HEX------\n");
+  // for(int i=0; i<6; i++)
+  //   {
+  //     for(int k =0; k<3; k++)
+  // 	statusbuf[i] |= (AtoH(buffer[i][k]) << (2-k)*4);
+  //     printf("%d : %04x\n", i, statusbuf[i]);
+  //   }
+  
+  // printf("------ASCII------\n");
+  // for (int i=0; i<6; i++)
+  //   {
+  //     serial.Readln(buffer[i], 10, '\n');
+  //     printf("%d : %s\n", i, buffer[i]);
+  //   }
+  // memset(statusbuf, 0, 6);
+
+  // printf("------HEX------\n");
+  // for(int i=0; i<6; i++)
+  //   {
+  //     for(int k =0; k<3; k++)
+  // 	statusbuf[i] |= (AtoH(buffer[i][k]) << (2-k)*4);
+  //     printf("%d : %04x\n", i, statusbuf[i]);
+  //   }
+  
+  int tempmask = 0;
+  tempmask = statusbuf[0];
+
+  tempmask &= 0xC00;
+  if (tempmask==0x800)
+    TDCStatus->rfifo = FIFO_EMPTY;
+  else if (tempmask==0x400)
+    TDCStatus->rfifo = FIFO_FULL;
+  else
+    TDCStatus->rfifo = FIFO_INVALID;
+
+  tempmask = statusbuf[0];
+  tempmask &= 0x1FF;
+  TDCStatus->error_flags = tempmask;
+
+  tempmask = statusbuf[2];
+
+  tempmask &= 0xE00;
+  if (tempmask==0x800)
+    TDCStatus->tfifo = FIFO_EMPTY;
+  else if (tempmask==0x400)
+    TDCStatus->tfifo = FIFO_NEARLY_FULL;
+  else if (tempmask==0x200)
+    TDCStatus->tfifo = FIFO_FULL;
+  else
+    TDCStatus->tfifo = FIFO_INVALID;
+
+  TDCStatus->tfifo_occ= ((statusbuf[3] & 0x700) >> 8);
+
+  int coarse_counter = 0;
+  printf("coarse_counter[0]: %04X\n", (statusbuf[3] & 0x800) >> 11);
+  printf("coarse_counter[1]: %04X\n", statusbuf[4]);
+  coarse_counter = (statusbuf[3] & 0x800) >> 11;
+  coarse_counter |= (statusbuf[4] << 1);
+
+  TDCStatus->coarse_counter = coarse_counter;
 }
 
 void MezzTester::Update()
@@ -92,6 +166,9 @@ void MezzTester::Update()
   WriteReg(TDCRegs, TDC_REG_NUM, "jtw");
   WriteReg(ASDRegs, ASD_REG_NUM, "jaw");
   WriteReg(DACRegs, DAC_REG_NUM, "d");
+
+  serial.Writeln("jtu");
+  serial.Writeln("jau");
 
   char outbuf[10];
   serial.Write("p ");
@@ -112,13 +189,20 @@ void MezzTester::ReadFIFO(char * buffer)
 
 int MezzTester::FIFOFlags()
 {
-  serial.Writeln("");
-  char buffer[256];
-  buffer[255] = '\0';
+  serial.Writeln(" ");
+  char buffer[10];
   serial.Writeln("tf", false);
-  size_t sread = serial.Readln(buffer);
-  printf("Read (%zu) : %s\n" , sread,buffer);
-  return 0;
+  serial.Readln(buffer, 10);
+  if (buffer[0]==0x30 && buffer[1]==0x31)
+    return FIFO_EMPTY;
+    // printf("Buffer Empty!\n");
+  else if (buffer[0]==0x31 && buffer[1]==0x30)
+    return FIFO_FULL;
+    //  printf("Buffer FUll!\n");
+  
+  return FIFO_INVALID;
+  printf("ERROR: Fifo flags in invalid state, %s", buffer);
+
 }
 
 void MezzTester::ResetFIFO()
@@ -138,5 +222,14 @@ void MezzTester::WriteReg(int Reg[], int RegSize, const char * cmd)
       serial.Write(" ");
       sprintf(outbuf, "%03X", Reg[i]);
       serial.Writeln(outbuf);
+    }
+}
+
+int AtoH (char n)
+{
+    if (n >= '0' && n <= '9') {
+      return (n - '0');
+    } else {
+      return ((n + 10) - 'A');
     }
 }

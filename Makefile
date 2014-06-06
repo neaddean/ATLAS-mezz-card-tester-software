@@ -6,7 +6,7 @@ TEST=test
 
 all:  $(TEST)
 
-$(TEST):	test.o serial_io.o FDBlocking.o mezz_tester.o 
+$(TEST):	test.o serial_io.o FDBlocking.o mezz_tester.o tester.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 clean:

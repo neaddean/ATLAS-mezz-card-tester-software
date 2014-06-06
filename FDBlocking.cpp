@@ -9,7 +9,7 @@ bool SetFDBlocking(int fd,bool value)
       return false;
     }
     //Make the socket non-blocking
-  if(value)
+  if(!value)
     {
       currentFlags |= O_NONBLOCK;
     }

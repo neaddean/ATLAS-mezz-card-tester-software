@@ -1,4 +1,5 @@
 #include <serial_io.h>
+#include <errno.h>
 
 SerialIO::SerialIO()
 {
@@ -116,12 +117,10 @@ bool SerialIO::Close()
 
 int  SerialIO::Write(const char * buffer,size_t bufferSize) const
 {
-  int chars_written;
   //If there is a valid FD, call write and return the result
   if(fd > 0)
     {
-      chars_written =  write(fd,buffer,bufferSize);
-      return chars_written;
+      return write(fd,buffer,bufferSize);
     }
   //if there is a bad fd, return -2 
   //(we don't return -1, since that would mix this with a system error with an errno)
@@ -131,16 +130,23 @@ int  SerialIO::Write(const char * buffer,size_t bufferSize) const
 int SerialIO::Write(const char * str) const
 { 
   int num = 0;
-  char tempc;
+  //char buffer[255];
+  //ssize_t ret = 0;
   if(fd > 0)
     {
       while(*str != 0x00)
 	{
-	  Write(str++,1);
+	  if (write(fd, str++, 1)==-1)
+	    printf("Write error in %s line %d: %s\n", __FILE__, __LINE__, strerror(errno));
 	  num++;
 	}
-      read(fd, &tempc, num);
-
+      // ret = read(fd, buffer, num);
+      // if (ret != num)
+      // 	{
+      // 	  printf("ERROR: did not read back all bytes from Write(). Expected %d,"
+      // 		 " read %zu.\n", num, ret);
+      // 	  return -2;
+      // 	}
       return num;
     }
   return -2;
@@ -149,23 +155,29 @@ int SerialIO::Write(const char * str) const
 int SerialIO::Writeln(const char * str, bool CompleteLine) const
 { 
   int num = 0;
-  char tempc;
+  char tempc = ' ';
   if(fd > 0)
     {
       while(*str != 0x00)
 	{
-	  Write(str++,1);
+	  if (write(fd, str++,1)==-1)
+	    printf("Write error in %s line %d: %s\n", __FILE__, __LINE__, strerror(errno));
 	  num++;
 	}
-      Write("\n", 1);
-      do {
-        read(fd, &tempc, 1);
-      } while (tempc != '\n');
+      if (write(fd, "\n", 1)==-1)
+	printf("Write error in %s line %d: %s\n", __FILE__, __LINE__, strerror(errno));
+      num++;
+      do 
+	{
+	  if (read(fd, &tempc, 1)==-1)
+	    printf("Read error in %s line %d: %s\n",__FILE__, __LINE__, strerror(errno));
+	} while (tempc != '\n');
       if (CompleteLine)
 	{
 	  do {
-	read(fd, &tempc, 1);
-      } while (tempc != '>');
+	    if (read(fd, &tempc, 1)==-1)
+	      printf("Read error in %s line %d: %s\n",__FILE__, __LINE__, strerror(errno));
+	  } while (tempc != '>');
 	}
       return num;
     }
@@ -175,7 +187,6 @@ int SerialIO::Writeln(const char * str, bool CompleteLine) const
 
 int  SerialIO::Read(char * buffer,size_t bufferSize) const
 {
-
   //If there is a valid FD, call write and return the result
   if(fd > 0)
     {
@@ -186,20 +197,46 @@ int  SerialIO::Read(char * buffer,size_t bufferSize) const
   return -2;
 }
 
-int  SerialIO::Readln(char * buffer) const 
+int  SerialIO::Readln(char * buffer, int bufsize, char delim) const 
 {
-  char tempc;
+  char tempc = '`';
   int i = 0;
+  ssize_t ret = 0;
+  memset(buffer, 0, bufsize);
   if(fd > 0)
     {
       while (1) {
-	read(fd, &tempc, 1);
-	if( tempc == '>')
+	ret = read(fd, &tempc, 1);
+	if (ret == -1)
 	  {
-	    buffer[i-1] = '\0';
-	    return i-1;
+	  printf("Read error in %s line %d: %s\n", __FILE__, __LINE__, strerror(errno));
+	  return i;
 	  }
-        buffer[i++] = tempc;
+	buffer[i++] = tempc;
+	if (ret == 0)
+	  {
+	    if (i>0)
+	      i--;
+	  }
+	if (i == bufsize-1)
+	  {
+	    buffer[i] = '\0';
+	    printf("ERROR: Buffer overflow on Readln().\n"
+                    "Size: %d\n"
+		   "----------------------\n"
+		   "***%s***\n"
+		   "----------------------\n", i, buffer);
+	    return i;
+	  }
+	if(tempc == delim)
+	  {
+	    if (delim=='>')
+	      i-=3;
+	    else if (delim=='\n')
+	      i=i-2;
+	    buffer[i] = '\0';
+	    return i;
+	  }
       }
     }
   return -2;
