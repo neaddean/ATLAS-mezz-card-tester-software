@@ -7,10 +7,11 @@
 #define OFF 2
 #define RESET 3
 
-#define FIFO_EMPTY 0x0001
-#define FIFO_FULL 0x0002
-#define FIFO_NEARLY_FULL 0x0003
-#define FIFO_INVALID 0xFFFE
+#define FIFO_EMPTY 1
+#define FIFO_NOT_EMPTY 2
+#define FIFO_FULL 3
+#define FIFO_NEARLY_FULL 4
+#define FIFO_INVALID -1
 
 #define TRIGGER 0
 #define BCR 1

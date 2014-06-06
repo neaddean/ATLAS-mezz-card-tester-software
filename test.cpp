@@ -83,18 +83,20 @@ int main(int argc, char ** argv)
       switch(tempstat.rfifo)
 	{
 	case FIFO_EMPTY: printf("rfifo is empty.\n"); break;
+	case FIFO_NOT_EMPTY: printf("rfifo is not empty.\n"); break;
 	case FIFO_FULL: printf("rfifo is full.\n"); break;
 	default: printf("rfifo is invalid. Register value: %04X\n", tempstat.tfifo);
 	}
       switch(tempstat.tfifo)
 	{
 	case FIFO_EMPTY: printf("tfifo is empty.\n"); break;
+	case FIFO_NOT_EMPTY: printf("tfifo is not empty.\n"); break;
 	case FIFO_NEARLY_FULL: printf("tfifo is nearly full.\n"); break;
 	case FIFO_FULL: printf("tfifo is full.\n"); break;
 	default: printf("tfifo is invalid. Register value: %04X.\n", tempstat.tfifo);
 	}
       printf("tfifo occupancy: %d.\n", tempstat.tfifo_occ);
-      printf("coarse counter: %d, %4x.\n", tempstat.coarse_counter, tempstat.coarse_counter);
+      printf("coarse counter: %d.\n", tempstat.coarse_counter);
       check_tdc_err(&tempstat);
       sleep(1);
     }

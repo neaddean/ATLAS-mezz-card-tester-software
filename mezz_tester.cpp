@@ -76,6 +76,7 @@ void MezzTester::Power(int pwr)
       serial.Writeln("reset");      
       Power(OFF); sleep(1); Power(ON);
       serial.Writeln("gpio");
+      TDCcmd(GR);
       ResetFIFO();  break;
     }
 }
@@ -89,39 +90,14 @@ void MezzTester::GetStatus(TDCStatus_s * TDCStatus)
   serial.Writeln(" ");
   serial.Writeln("jts", false);
 
-  memset(statusbuf, 0, 6);
-  printf("------ASCII : HEX------\n");
+  // memset(statusbuf, 0, 6);
+  // printf("--ASCII : HEX------\n");
   for (int i=0; i<6; i++)
     {
       serial.Readln(buffer, 10, '\n');
-      for (int k=0; k<3; k++)
-	statusbuf[i] |= (AtoH(buffer[k]) << (2-k)*4);
-      printf("%d : %s : %04X\n", i, buffer, statusbuf[i]);
+      statusbuf[i] = (int)strtoul(buffer, NULL, 16);
+      // printf("%d : %s : %04X\n", i, buffer, statusbuf[i]);
     }
-
-  // printf("------HEX------\n");
-  // for(int i=0; i<6; i++)
-  //   {
-  //     for(int k =0; k<3; k++)
-  // 	statusbuf[i] |= (AtoH(buffer[i][k]) << (2-k)*4);
-  //     printf("%d : %04x\n", i, statusbuf[i]);
-  //   }
-  
-  // printf("------ASCII------\n");
-  // for (int i=0; i<6; i++)
-  //   {
-  //     serial.Readln(buffer[i], 10, '\n');
-  //     printf("%d : %s\n", i, buffer[i]);
-  //   }
-  // memset(statusbuf, 0, 6);
-
-  // printf("------HEX------\n");
-  // for(int i=0; i<6; i++)
-  //   {
-  //     for(int k =0; k<3; k++)
-  // 	statusbuf[i] |= (AtoH(buffer[i][k]) << (2-k)*4);
-  //     printf("%d : %04x\n", i, statusbuf[i]);
-  //   }
   
   int tempmask = 0;
   tempmask = statusbuf[0];
@@ -153,8 +129,6 @@ void MezzTester::GetStatus(TDCStatus_s * TDCStatus)
   TDCStatus->tfifo_occ= ((statusbuf[3] & 0x700) >> 8);
 
   int coarse_counter = 0;
-  printf("coarse_counter[0]: %04X\n", (statusbuf[3] & 0x800) >> 11);
-  printf("coarse_counter[1]: %04X\n", statusbuf[4]);
   coarse_counter = (statusbuf[3] & 0x800) >> 11;
   coarse_counter |= (statusbuf[4] << 1);
 
@@ -177,6 +151,10 @@ void MezzTester::Update()
 
 void MezzTester::TDCcmd(int cmd)
 {
+  char tempc = (char) + 0x30;
+  serial.Write("tc ");
+  serial.Write(&tempc);
+  serial.Writeln("");
 }
 
 void MezzTester::TDCBCR(int n)
@@ -199,6 +177,8 @@ int MezzTester::FIFOFlags()
   else if (buffer[0]==0x31 && buffer[1]==0x30)
     return FIFO_FULL;
     //  printf("Buffer FUll!\n");
+  else if (buffer[0]==0x30 && buffer[1]==0x30)
+    return FIFO_NOT_EMPTY;
   
   return FIFO_INVALID;
   printf("ERROR: Fifo flags in invalid state, %s", buffer);
