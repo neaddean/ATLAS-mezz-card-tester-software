@@ -130,8 +130,6 @@ int  SerialIO::Write(const char * buffer,size_t bufferSize) const
 int SerialIO::Write(const char * str) const
 { 
   int num = 0;
-  //char buffer[255];
-  //ssize_t ret = 0;
   if(fd > 0)
     {
       while(*str != 0x00)
@@ -140,13 +138,6 @@ int SerialIO::Write(const char * str) const
 	    printf("Write error in %s line %d: %s\n", __FILE__, __LINE__, strerror(errno));
 	  num++;
 	}
-      // ret = read(fd, buffer, num);
-      // if (ret != num)
-      // 	{
-      // 	  printf("ERROR: did not read back all bytes from Write(). Expected %d,"
-      // 		 " read %zu.\n", num, ret);
-      // 	  return -2;
-      // 	}
       return num;
     }
   return -2;

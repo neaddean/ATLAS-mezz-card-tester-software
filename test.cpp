@@ -6,7 +6,6 @@
 #include <serial_io.h>
 
 #include <mezz_tester.h>
-#include <tester.h>
 
 //==============================================================                      
 //Signal handler and loop control                            
@@ -17,6 +16,8 @@ void signalHandler(int signum)
   printf("Shutting down\n");
   running = false;
 }
+
+void quick_test(int, MezzTester*);
 
 int main(int argc, char ** argv)
 {
@@ -69,38 +70,20 @@ int main(int argc, char ** argv)
   //==============================================================                      
   //Start main loop
   //==============================================================                      
-
-  // MezzTester * GoodLuck = new MezzTester(argv[1]);
-  //GoodLuck->FIFOFlags();
-  MezzTester GoodLuck(argv[1]);
-  TDCStatus_s tempstat;
+  MezzTester GoodLuck(argv[1], 0xFFFFFF);
+  GoodLuck.Board.SetStrobePulsePeriod(0x01);
   running = true;
-  while (running)
+  // while (running)
+  // {
+  for (int i=0; i!=0x0F; i++)
     {
-      printf("\n\n--------------------------------------------\n");
-      //GoodLuck.FIFOFlags();
-      GoodLuck.GetStatus(&tempstat);
-      switch(tempstat.rfifo)
-	{
-	case FIFO_EMPTY: printf("rfifo is empty.\n"); break;
-	case FIFO_NOT_EMPTY: printf("rfifo is not empty.\n"); break;
-	case FIFO_FULL: printf("rfifo is full.\n"); break;
-	default: printf("rfifo is invalid. Register value: %04X\n", tempstat.tfifo);
-	}
-      switch(tempstat.tfifo)
-	{
-	case FIFO_EMPTY: printf("tfifo is empty.\n"); break;
-	case FIFO_NOT_EMPTY: printf("tfifo is not empty.\n"); break;
-	case FIFO_NEARLY_FULL: printf("tfifo is nearly full.\n"); break;
-	case FIFO_FULL: printf("tfifo is full.\n"); break;
-	default: printf("tfifo is invalid. Register value: %04X.\n", tempstat.tfifo);
-	}
-      printf("tfifo occupancy: %d.\n", tempstat.tfifo_occ);
-      printf("coarse counter: %d.\n", tempstat.coarse_counter);
-      check_tdc_err(&tempstat);
-      sleep(1);
+      printf("\n\n-----------------------------------------"
+	     "-------------------------------------------\n");
+      quick_test(i, &GoodLuck);
+      if (!running)
+	break;
     }
-
+  
   // delete GoodLuck;
 
   // SerialIO serial;
@@ -133,5 +116,24 @@ int main(int argc, char ** argv)
 
 
   return 0;
+}
+
+
+void quick_test(int period, MezzTester * GoodLuck)
+{
+  (void) period;
+  // GoodLuck->Board.SetStrobePulsePeriod(period);
+  // GoodLuck->printTDCStatus();
+  GoodLuck->printTDCError();
+  GoodLuck->Board.TDCcmd(GR);
+  // while(GoodLuck->Board.FIFOFlags() != FIFO_NOT_EMPTY)
+    //  {
+      GoodLuck->Board.TDCcmd(TRIGGER);
+      // while(!GoodLuck->TDCRunning());
+  //    }
+  printf("Period: %02X\n", period);
+  if (GoodLuck->getReadout() >= NO_HITS)
+    GoodLuck->printTDCHits();
+  sleep(1);
 }
 

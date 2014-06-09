@@ -76,7 +76,7 @@ public:
   int  Write(const char * buffer) const;
   int  Writeln(const char * str, bool CompleteLine = true) const;
   int  Read(char * buffer,size_t bufferSize) const;
-  int  Readln(char * buffer, int bufsize, char delim = '>') const;
+  int  Readln(char * buffer, int bufsize, char delim = '\n') const;
 private:
   //System control variables 
   // (only for sys interface, assume they have been messed with!)
