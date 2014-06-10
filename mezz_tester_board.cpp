@@ -1,0 +1,301 @@
+#include <iostream>
+#include <mezz_tester.h>
+#include <cstring>
+#include <stdlib.h>
+#include <errno.h>
+
+MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
+{
+  int ASD[] = {0xFF, 0x07, 108,   6,   2,   6,   2,   7, 0x00, 0x00, 0x00};
+  /*              0     1    2    3    4    5    6    7     8     9     A */
+  int TDC[] = {0x000, 0x080, 0x08A, 0x080, 0x26C, 0x000, 0x26C, 0x000, 0x3FF, 
+  /*               0      1      2      3      4      5      6      7      8 */
+  	       0xC0D, 0xAF9, 0xF11, 0x1FF, 0x000, 0x001};		
+  /*               9      A      B      C      D      E */	
+  int DAC[] = {0xFFF, 0xFFF, 0xFFF, 0xFFF};
+
+  int i;
+  for (i = 0; i<TDC_REG_NUM; i++)
+    TDCRegs[i] = TDC[i];
+  for (i = 0; i<ASD_REG_NUM; i++)
+    ASDRegs[i] = ASD[i];
+  for (i = 0; i<DAC_REG_NUM; i++)
+    DACRegs[i] = DAC[i];
+
+  this->ChannelMask = ChannelMask;
+  StrobePulsePeriod = 0x01;
+  HitPeriod = 0x9B;
+
+  serial.SetDevice(device_name);
+  if(!serial.Open())
+    printf("ERROR: cannot opening device\n"); 
+
+  BoardReset();
+ 
+  printf("MezzTesterBoard Online.\n");
+}
+
+MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], char* device_name, 
+		       int ChannelMask)
+{
+  int i;
+  for (i = 0; i<15; i++)
+    TDCRegs[i] = TDC[i];
+  for (i = 0; i<11; i++)
+    ASDRegs[i] = ASD[i];
+  for (i = 0; i<4; i++)
+    DACRegs[i] = DAC[i];
+
+  this->ChannelMask = ChannelMask;
+  StrobePulsePeriod = 0x01; 
+  HitPeriod = 0x9B;
+
+
+  serial.SetDevice(device_name);
+  if(!serial.Open())
+    printf("ERROR: cannot opening device\n"); 
+ 
+  BoardReset();
+  
+  printf("MezzTesterBoard Online.\n");
+}
+
+MezzTesterBoard::~MezzTesterBoard()
+{
+  Power(OFF);
+  serial.Close();
+  printf("MezzTesterBoard Offline.\n");
+}
+
+void MezzTesterBoard::Power(int pwr)
+{
+  switch (pwr)
+    {
+    case ON: serial.Writeln("power_on"); break;
+    case OFF: serial.Writeln("power_off"); break;
+    case RESET: Power(OFF); sleep(2); Power(ON); sleep(2); break;
+    }
+}
+
+void MezzTesterBoard::Init()
+{
+  serial.Writeln(" ");
+  serial.Writeln("reset");
+  serial.Writeln("gpio");
+  TDCcmd(GR);
+  ResetFIFO();
+}
+
+void MezzTesterBoard::BoardReset()
+{
+  Power(RESET);
+  Init();
+  Update();
+}
+
+
+void MezzTesterBoard::GetStatus(TDCStatus_s * TDCStatus)
+{
+  char buffer[20];
+  int statusbuf[6];
+  
+  serial.Writeln(" ");
+  serial.Writeln("jts", false);
+  // printf("-----ASCII : HEX-----\n");
+  for (int i=0; i<6; i++)
+    {
+      serial.Readln(buffer, 20);
+      statusbuf[i] = (int)strtoul(buffer, NULL, 16);
+      // printf("   %d : %s : %04X\n", i, buffer, statusbuf[i]);
+    }
+  
+  int tempmask = 0;
+  tempmask = statusbuf[0];
+
+  tempmask &= 0xC00;
+  if (tempmask==0x800)
+    TDCStatus->rfifo = FIFO_EMPTY;
+  else if (tempmask==0x400)
+    TDCStatus->rfifo = FIFO_FULL;
+  else
+    TDCStatus->rfifo = FIFO_INVALID;
+
+  tempmask = statusbuf[0];
+  tempmask &= 0x1FF;
+  TDCStatus->errorflags = tempmask;
+
+  tempmask = statusbuf[2];
+
+  tempmask &= 0xE00;
+  if (tempmask==0x800)
+    TDCStatus->tfifo = FIFO_EMPTY;
+  else if (tempmask==0x400)
+    TDCStatus->tfifo = FIFO_NEARLY_FULL;
+  else if (tempmask==0x200)
+    TDCStatus->tfifo = FIFO_FULL;
+  else
+    TDCStatus->tfifo = FIFO_INVALID;
+
+  TDCStatus->running = ((statusbuf[2] & 0x100) >> 8);
+
+  TDCStatus->tfifo_occ = ((statusbuf[3] & 0x700) >> 8);
+
+  int coarse_counter = 0;
+  coarse_counter = (statusbuf[3] & 0x800) >> 11;
+  coarse_counter |= (statusbuf[4] << 1);
+
+  TDCStatus->coarse_counter = coarse_counter;
+}
+
+void MezzTesterBoard::Update()
+{
+  WriteReg(TDCRegs, TDC_REG_NUM, "jtw");
+  WriteReg(ASDRegs, ASD_REG_NUM, "jaw");
+  WriteReg(DACRegs, DAC_REG_NUM, "d");
+
+  serial.Writeln("jtu");
+  serial.Writeln("jau");
+
+  char outbuf[20];
+
+  sprintf(outbuf, "p %06X", ChannelMask);
+  serial.Writeln(outbuf);
+
+  sprintf(outbuf, "sp %02X", StrobePulsePeriod);
+  serial.Writeln(outbuf);
+
+  sprintf(outbuf, "pt %02X", HitPeriod);
+  serial.Writeln(outbuf);
+}
+
+void MezzTesterBoard::TDCcmd(int cmd)
+{
+  char tempc = (char) cmd + 0x30;
+  serial.Write("tc ");
+  serial.Write(&tempc, 1);
+  serial.Writeln("");
+}
+
+void MezzTesterBoard::TDCBCR(int n)
+{
+}
+
+int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
+{
+  unsigned int readbuf[RFIFO_DEPTH];
+  int readsize = 0;
+  int errortemp = 0;
+  if (FIFOFlags() == FIFO_EMPTY)
+    {
+      printf("ERROR: There is nothing to read out...??....\n");
+      readsize = NO_READOUT;
+      return NO_READOUT;
+    }
+  // printf("\n----------------Readout-----------------\n");
+  // printf("\t#\tASCII\t\tHEX\n");
+  char buffer[20];
+  serial.Writeln("tr", false);
+  for (readsize = 0; readsize<RFIFO_DEPTH; )
+    {
+      serial.Readln(buffer, 20);
+      readbuf[readsize] = (unsigned int)strtoul(buffer, NULL, 16);
+      if ((readbuf[readsize] & 0x60000000) == 0x60000000)
+	{
+	  errortemp = readbuf[readsize];
+	  continue;
+	}
+      //  printf("\t%-d\t%s\t%08X\n", readsize, buffer, readbuf[readsize]);
+      if ((readbuf[readsize] & 0xC0000000) == 0xC0000000)
+	break;
+      readsize++;
+    }
+
+  if ((readbuf[0] & 0xA0000000) != 0xA0000000)
+    printf("ERROR: packet did not begin with header.\n");
+
+  int expected_read = (readbuf[readsize] & 0x000000FFF) + ((errortemp==0)? 0 : -1);
+  readsize++;
+  if (expected_read != readsize)
+    printf("ERROR: fifo read size mismatch error, expected %d but read %d\n", 
+	   expected_read, readsize);
+  
+  if ((readsize == RFIFO_DEPTH) && ((readbuf[readsize & 0xC0000000]) != 0xC0000000))
+    printf("ERROR: packet did not end with trailer\n");
+  
+  //==============================
+  // Parsing
+  //==============================
+
+  if (readsize == -1)
+    {
+      HitReadout->numHits = -1;
+      printf("ERROR: %s at line %d should not execute\n", __FILE__, __LINE__);
+      return NO_READOUT;
+    }
+  else if (readsize == 2)
+    {
+      HitReadout->numHits = 0;
+      // printf("No hits\n");
+      return NO_HITS;
+    }
+  else if (readsize < 2)
+    {
+      printf("ERROR: readsize= %d\n", readsize);
+      return READSIZE_ERROR;
+    }
+
+  HitReadout->errorflags = errortemp & 0x00003FFF;
+  HitReadout->numHits = readsize - 2;
+  HitReadout->eventID = (readbuf[0] & 0x00FFF000) >> 12;
+  HitReadout->bunchID = (readbuf[0] & 0x00000FFF);
+
+  for (int i=1; i < readsize-1; i++)
+    {
+      if ((readbuf[i]&0x30000000) != 0x30000000)
+	{
+	printf("ERROR: word is not measurement data: %08X\n", readbuf[i]);
+	continue;
+	}
+      HitReadout->hits[i-1].channel = (readbuf[i] & 0x00F80000) >> 19;
+      HitReadout->hits[i-1].edge = (readbuf[i] & 0x00040000) >> 18;
+      HitReadout->hits[i-1].error = (readbuf[i] & 0x00020000) >> 17;
+      HitReadout->hits[i-1].coarseTime = (readbuf[i] & 0x0001FFE0) >> 5;
+      HitReadout->hits[i-1].fineTime = (readbuf[i] & 0x0000001F);
+    }
+
+  return 1;
+
+}
+
+int MezzTesterBoard::FIFOFlags()
+{
+  serial.Writeln(" ");
+  char buffer[20];
+  serial.Writeln("tf", false);
+  serial.Readln(buffer, 20);
+  if (buffer[0]==0x30 && buffer[1]==0x31)
+    return FIFO_EMPTY;
+  else if (buffer[0]==0x31 && buffer[1]==0x30)
+    return FIFO_FULL;
+  else if (buffer[0]==0x30 && buffer[1]==0x30)
+    return FIFO_NOT_EMPTY;
+  
+  return FIFO_INVALID;
+  printf("ERROR: Fifo flags in invalid state, %s\n", buffer);
+
+}
+
+void MezzTesterBoard::ResetFIFO()
+{
+  serial.Writeln("tz");
+}
+
+void MezzTesterBoard::WriteReg(int Reg[], int RegSize, const char * cmd)
+{
+  char outbuf[30];
+  for (int i=0; i<RegSize; i++)
+    {
+      sprintf(outbuf, "%s %01X %03X", cmd, i, Reg[i]);
+      serial.Writeln(outbuf);
+    }
+}
