@@ -71,7 +71,8 @@ int main(int argc, char ** argv)
   //Start main loop
   //==============================================================                      
   MezzTester GoodLuck(argv[1], 0xFFFFFF);
-  GoodLuck.Board.SetStrobePulsePeriod(0x01);
+  GoodLuck.Board.SetHitPeriod(0x9B);
+  GoodLuck.Board.SetStrobePulsePeriod(0x02);
   running = true;
   // while (running)
   // {
@@ -123,17 +124,12 @@ void quick_test(int period, MezzTester * GoodLuck)
 {
   (void) period;
   // GoodLuck->Board.SetStrobePulsePeriod(period);
-  // GoodLuck->printTDCStatus();
-  GoodLuck->printTDCError();
-  GoodLuck->Board.TDCcmd(GR);
-  // while(GoodLuck->Board.FIFOFlags() != FIFO_NOT_EMPTY)
-    //  {
-      GoodLuck->Board.TDCcmd(TRIGGER);
-      // while(!GoodLuck->TDCRunning());
-  //    }
-  printf("Period: %02X\n", period);
+  //GoodLuck->printTDCStatus();
+  GoodLuck->Board.TDCcmd(ECR);
+  GoodLuck->Board.TDCcmd(TRIGGER);
+  // printf("Period: %02X\n", period);
   if (GoodLuck->getReadout() >= NO_HITS)
     GoodLuck->printTDCHits();
-  sleep(1);
+  sleep(.001);
 }
 

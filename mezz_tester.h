@@ -14,7 +14,7 @@ class MezzTester
   void getTDCStatus();
   void getTDCStatus(TDCStatus_s * TDCStatus);
   int TDCRunning();
-  void printTDCError();
+  void printTDCError(int errmask);
   void printTDCStatus();
   void printTDCHits();
   int  getReadout();
