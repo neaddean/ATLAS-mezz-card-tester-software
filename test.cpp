@@ -71,12 +71,11 @@ int main(int argc, char ** argv)
   //Start main loop
   //==============================================================                      
   MezzTester GoodLuck(argv[1], 0xFFFFFF);
-  GoodLuck.Board.SetHitPeriod(0x9B);
-  GoodLuck.Board.SetStrobePulsePeriod(0x02);
+  GoodLuck.Board.SetHitPeriod(620);
   running = true;
   // while (running)
   // {
-  for (int i=0; i!=0x0F; i++)
+  for (int i=0; i < 10; i++)
     {
       printf("\n\n-----------------------------------------"
 	     "-------------------------------------------\n");

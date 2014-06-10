@@ -31,7 +31,7 @@ void SerialIO::Reset(int level)
       oFlags = 0;
       iFlags = 0;
       cFlags = CS8 | CLOCAL | CREAD;
-      baudRate = B500000;
+      baudRate = B9600;
       
       device.clear();  
     }
@@ -200,8 +200,8 @@ int  SerialIO::Readln(char * buffer, int bufsize, char delim) const
 	ret = read(fd, &tempc, 1);
 	if (ret == -1)
 	  {
-	  printf("Read error in %s line %d: %s\n", __FILE__, __LINE__, strerror(errno));
-	  return i;
+	    printf("Read error in %s line %d: %s\n", __FILE__, __LINE__, strerror(errno));
+	    return i;
 	  }
 	buffer[i++] = tempc;
 	if (ret == 0)
@@ -213,7 +213,7 @@ int  SerialIO::Readln(char * buffer, int bufsize, char delim) const
 	  {
 	    buffer[i] = '\0';
 	    printf("ERROR: Buffer overflow on Readln().\n"
-                    "Size: %d\n"
+		   "Size: %d\n"
 		   "----------------------\n"
 		   "***%s***\n"
 		   "----------------------\n", i, buffer);

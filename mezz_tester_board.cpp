@@ -6,12 +6,17 @@
 
 MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
 {
-  int ASD[] = {0xFF, 0x07, 108,   6,   2,   6,   2,   7, 0x00, 0x00, 0x00};
+  int ASD[] = {0xFF, 0x07, 108,   6,   2,   6,   2,   7, 0x00, 0x00, 0x01};
   /*              0     1    2    3    4    5    6    7     8     9     A */
-  int TDC[] = {0x000, 0x080, 0x08A, 0x080, 0x26C, 0x000, 0x26C, 0x000, 0x3FF, 
+  // int TDC[] = {0x000, 0x080, 0x090, 0x080, 0x800, 0x000, 0x000, 0x000, 0xFFF, 
+  // /*               0      1      2      3      4      5      6      7      8 */
+  // 	       0xC0A, 0xAF1, 0xF11, 0x1FF, 0x000, 0x001};		
+  // /*               9      A      B      C      D      E */
+  
+  int TDC[] = {0x000,    32,    39,    31,   380, 0x000,   403, 0x000,  1023, 
   /*               0      1      2      3      4      5      6      7      8 */
-  	       0xC0D, 0xAF9, 0xF11, 0x1FF, 0x000, 0x001};		
-  /*               9      A      B      C      D      E */	
+  	       0xC0A, 0xAF1, 0xF11, 0x1FF, 0x000, 0x001};		
+  /*               9      A      B      C      D      E */
   int DAC[] = {0xFFF, 0xFFF, 0xFFF, 0xFFF};
 
   int i;
