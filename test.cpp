@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include <signal.h>
 #include <errno.h>
@@ -16,8 +17,6 @@ void signalHandler(int signum)
   printf("Shutting down\n");
   running = false;
 }
-
-void quick_test(int, MezzTester*);
 
 int main(int argc, char ** argv)
 {
@@ -71,64 +70,53 @@ int main(int argc, char ** argv)
   //Start main loop
   //==============================================================                      
   MezzTester GoodLuck(argv[1], 0xFFFFFF);
-  GoodLuck.Board.SetHitPeriod(620);
+  FILE * hitFile;
+  hitFile = fopen("hits.txt", "w");
+  HitReadout_s *hitz = NULL;
+  fprintf(hitFile, "\thit#\tchannel\tedge\terror\tcoarse\tfine\tabs\n");
+  GoodLuck.Board.SetHitPeriod(790);
   running = true;
-  // while (running)
-  // {
-  for (int i=0; i < 10; i++)
+  int totalhits = 0;
+  for (int i=0; i < 1000; i++)
     {
-      printf("\n\n-----------------------------------------"
-	     "-------------------------------------------\n");
-      quick_test(i, &GoodLuck);
+      GoodLuck.Board.TDCcmd(BCR);
+      while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
+	{
+	  GoodLuck.Board.TDCcmd(TRIGGER);
+	}
+      if (GoodLuck.getReadout() > NO_HITS)
+	{
+	  // printf("\n\n-----------------------------------------"
+	  // 	 "-------------------------------------------\n");    
+	  // GoodLuck.printTDCHits();
+	  hitz = GoodLuck.retReadout();
+	  for (int k = 0; k < hitz->numHits; k++)
+	    {
+	      fprintf(hitFile, "\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%d\n",
+		      i, hitz->hits[i].channel, hitz->hits[i].edge, 
+		      hitz->hits[i].error,hitz->hits[i].coarseTime, 
+		      hitz->hits[i].fineTime, 
+		      hitz->hits[i].coarseTime*32 + hitz->hits[i].fineTime);
+	      totalhits++;
+	    }
+	} 
+      sleep(.005);
+      if (i%100 == 0)
+	printf("%d%% done with %d hits\n", i/10, totalhits);
       if (!running)
-	break;
+      	break;
     }
-  
-  // delete GoodLuck;
-
-  // SerialIO serial;
-  // serial.SetDevice(argv[1]);
-  // if(!serial.Open())
-  //   {
-  //     printf("Error opening device\n");
-  //     return -1;
-  //   }
-  
-
-  // size_t bufferSize = 256;
-  // char buffer[bufferSize+1];
-  // buffer[bufferSize] = '\0';
+  printf("total hits: %d\n", totalhits);
+  fclose(hitFile);
 
 
-  // running = true;
-  // while(running)
-  //   {      
-  //     serial.Writeln("tf", false);
-  //     size_t sread = serial.Read(buffer,bufferSize);
-  //     if(sread < bufferSize)
-  //     	{
-  //     	  buffer[sread] = '\0';
-  //     	  printf("Read (%zu) : %s\n" , sread,buffer);	  
-  //     	}
-  //     sleep(1);
-  //   }
-  // serial.Close();
 
+
+  //GoodLuck->Board.serial.Writeln("tc 2");
+  //GoodLuck->Board.TDCcmd(BCR);
+  //GoodLuck->Board.SetHitPeriod(period);
+  //GoodLuck->Board.UpdateInjector();
+  //GoodLuck->printTDCStatus();
 
   return 0;
 }
-
-
-void quick_test(int period, MezzTester * GoodLuck)
-{
-  (void) period;
-  // GoodLuck->Board.SetStrobePulsePeriod(period);
-  //GoodLuck->printTDCStatus();
-  GoodLuck->Board.TDCcmd(ECR);
-  GoodLuck->Board.TDCcmd(TRIGGER);
-  // printf("Period: %02X\n", period);
-  if (GoodLuck->getReadout() >= NO_HITS)
-    GoodLuck->printTDCHits();
-  sleep(.001);
-}
-

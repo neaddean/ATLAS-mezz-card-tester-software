@@ -26,7 +26,7 @@ int MezzTester::TDCRunning()
 {
   getTDCStatus();
   return TDCStatus.running;
-}
+} 
 
 void MezzTester::getTDCStatus(TDCStatus_s * TDCStatus)
 {
@@ -107,11 +107,11 @@ void MezzTester::printTDCStatus()
 void MezzTester::printTDCHits()
 {
   printf("Number of hits: %0d\n", HitReadout.numHits);
-  if (HitReadout.numHits == 0)
-    return;
   printf("Event ID: %0d\n", HitReadout.eventID);
   printf("Bunch ID: %0d\n", HitReadout.bunchID);
   printf("Errorflags: %04X\n", HitReadout.errorflags);
+  if (HitReadout.numHits == 0)
+    return;
   printf("\thit#\tchannel\tedge\terror\tcoarse\tfine\n");
   for (int i=0; i<HitReadout.numHits; i++)
     {

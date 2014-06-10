@@ -13,7 +13,7 @@
 #define FIFO_NEARLY_FULL 4
 #define FIFO_INVALID -1
 
-#define RFIFO_DEPTH 64
+#define RFIFO_DEPTH 256
 
 #define TRIGGER 0
 #define BCR 1
@@ -94,7 +94,10 @@ class MezzTesterBoard
   int  GetHitPeriod() {return HitPeriod;}
 
   void GetStatus(TDCStatus_s * TDCStatus);
-  void Update();
+  void UpdateBoard();
+  void UpdateTDC() {WriteReg(TDCRegs, TDC_REG_NUM, "jtw");serial.Writeln("jtu");}
+  void UpdateASD() {WriteReg(ASDRegs, ASD_REG_NUM, "jaw");serial.Writeln("jau");}
+  void UpdateInjector();
 
   void TDCcmd(int cmd);
   void TDCBCR(int n);
@@ -102,10 +105,10 @@ class MezzTesterBoard
   int  FIFOFlags();
   void ResetFIFO();
   
+  SerialIO serial;
  private:
   void WriteReg(int Reg[], int RegSize, const char * cmd);
   
-  SerialIO serial;
 
   int TDCRegs[TDC_REG_NUM];
   int ASDRegs[ASD_REG_NUM];

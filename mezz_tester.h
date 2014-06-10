@@ -18,6 +18,7 @@ class MezzTester
   void printTDCStatus();
   void printTDCHits();
   int  getReadout();
+  HitReadout_s * retReadout() {return &(HitReadout);} 
   
   MezzTesterBoard Board;
  private:
