@@ -13,7 +13,7 @@
 #define FIFO_NEARLY_FULL 4
 #define FIFO_INVALID -1
 
-#define RFIFO_DEPTH 256
+#define RFIFO_DEPTH 5000
 
 #define TRIGGER 0
 #define BCR 1

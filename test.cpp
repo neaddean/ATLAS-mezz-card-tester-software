@@ -50,50 +50,61 @@ int main(int argc, char ** argv)
   
 
   //==============================================================                      
-  //Setup serial port
-  //==============================================================                      
-
-  // SerialIO serial;
-  // serial.SetDevice(argv[1]);
-  // if(!serial.Open())
-  //   {
-  //     printf("Error opening device\n");
-  //     return -1;
-  //   }
-  
-
-  // size_t bufferSize = 256;
-  // char buffer[bufferSize+1];
-  // buffer[bufferSize] = '\0';
-
-
-  //==============================================================                      
   //Start main loop
   //==============================================================                      
-  MezzTester GoodLuck(argv[1], 0xFFFFFF);
+  MezzTester GoodLuck(argv[1], 0x000000, false);
   GoodLuck.Board.SetHitPeriod(900);
-  GoodLuck.Board.SetChannel(12);
   running = true;
+  FILE* sweep_file;
+  sweep_file = fopen("sweep_file.txt", "w");
+  fprintf(sweep_file, "#thresh\trate\n");
+  // float rate = 0;
+  // int runhits = 0;b
 
-  for (int i=0; i < 10000; i++)
-    {
-      // GoodLuck.Board.TDCcmd(ECR);
-      while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
-      	{
-      	  GoodLuck.Board.TDCcmd(TRIGGER);
-	}
-      if (GoodLuck.getReadout() > NO_HITS)
-	{
-	  // printf("\n\n-----------------------------------------"
-	  // 	 "-------------------------------------------\n");
-	  //GoodLuck.printTDCHits();
-	  //GoodLuck.saveHits();
-	} 
-      if (i%100 == 0)
-	printf("%d%% done with %d/%d hits\n", i/100, GoodLuck.getTotalHits(), i);
-      if (!running)
-      	break;
-    }
-  printf("%d total hits\n", GoodLuck.getTotalHits());
+  GoodLuck.Board.SetChannel(5);
+  while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
+    GoodLuck.Board.TDCcmd(TRIGGER);
+  GoodLuck.getReadout();
+  GoodLuck.printTDCHits();
+
+  // const int num_sweeps = 100;
+  // GoodLuck.Board.SetChannel(0);
+  // for (int thresh=0; thresh<255; thresh+=5)
+  //   {
+  //     GoodLuck.Board.SetASDReg(DISC1_THR, thresh);
+  //     GoodLuck.Board.UpdateASD();
+  //     GoodLuck.resetTotalHits();
+  //     for (int i=0; i<num_sweeps; i++)
+  // 	{
+  // 	  while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
+  // 	    GoodLuck.Board.TDCcmd(TRIGGER);
+  // 	  GoodLuck.getReadout();
+  // 	  if (!running)
+  // 	    break;
+  // 	}
+  //     runhits = GoodLuck.getTotalHits();
+  //     rate = (float)runhits/(.00001024*num_sweeps);
+  //     fprintf(sweep_file, "%0d\t%0d\t%f\n", 2*thresh-255, runhits, rate);
+  //     printf("%0d\t%0d\t%f\n", 2*thresh-255, runhits, rate);
+  //     if (!running)
+  // 	break;
+  //   }
+
+  fclose(sweep_file);
+
   return 0;
 }
+
+  // for (int i=0; i < 10000; i++)
+  //   {
+  //     while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
+  //     	  GoodLuck.Board.TDCcmd(TRIGGER);
+  //     if (GoodLuck.getReadout() > NO_HITS)
+  // 	{
+  // 	} 
+  //     if (i%100 == 0)
+  // 	printf("%d%% done with %d/%d hits\n", i/100, GoodLuck.getTotalHits(), i);
+  //     if (!running)
+  //     	break;
+  //   }
+  // printf("%d total hits\n", GoodLuck.getTotalHits());

@@ -3,20 +3,25 @@
 #include <stdlib.h>
 
 
-MezzTester::MezzTester(char* device_name, int ChannelMask) 
+MezzTester::MezzTester(char* device_name, bool shouldSave, int ChannelMask) 
                   : Board(device_name, ChannelMask)
 {
-  initFile();
   totalhits = 0;
   savedhits = 0;
+  shouldSaveHits = shouldSave;
+  if(shouldSaveHits)
+    initFile();
 }
 
 MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], char* device_name, 
-   int ChannelMask) : Board(TDC, ASD, DAC,device_name, ChannelMask)
+		       bool shouldSave, int ChannelMask) 
+                  : Board(TDC, ASD, DAC,device_name, ChannelMask)
 {
-  initFile();
   totalhits = 0;
   savedhits = 0;
+  shouldSaveHits = shouldSave;
+  if(shouldSaveHits)
+    initFile();
 }
 
 void MezzTester::initFile()
@@ -58,6 +63,8 @@ int MezzTester::getReadout()
   int ret = Board.ReadFIFO(&(this->HitReadout));
   if (ret > NO_HITS)
     totalhits += HitReadout.numHits;
+  if (shouldSaveHits)
+    saveHits();
   return ret;
 }
 
@@ -132,7 +139,7 @@ void MezzTester::printTDCHits()
   printf("thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
   for (int i=0; i<HitReadout.numHits; i++)
     {
-      printf("\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
+      printf("%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
 	     i, HitReadout.hits[i].channel, 
 	     HitReadout.hits[i].edge, HitReadout.hits[i].error, 
 	     HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime, 
@@ -154,6 +161,6 @@ void MezzTester::saveHits()
 	      HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime, 
 	      HitReadout.hits[i].hitTime);
     }
-  if (savedhits != totalhits)
+  if ((savedhits != totalhits) && shouldSaveHits)
     printf("ERROR: not saving all recorded hits: total: %d saved: %d\n", totalhits, savedhits);
 }

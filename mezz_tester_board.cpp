@@ -6,18 +6,18 @@
 
 MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
 {
-  int ASD[] = {0x00, 0x00, 115,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
+  int ASD[] = {0x00, 0x00, 127,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
   /*              0     1    2    3    4    5    6    7     8     9     A  */
-   int TDC[] = {0x000,   32,     39,    31,  3424,     0,  3464, 0x000,  3563, 
+  // int TDC[] = {0x000,   32,     39,    31,  3424,     0,  3464, 0x000,  3563, 
   // /*               0      1      2      3      4      5      6      7      8 */
   // 	       0xC0A, 0xAF1, 0xE11, 0x1FF, 0xfff, 0xfff};		
   // /*            9      A      B      C      D      E */
   
-  // int TDC[] = {0x000,    80,    88,    79,     0,     0,     0, 0x000, 0xFFF, 
+  int TDC[] = {0x000,     0,    40,   48,     0,     0,     0, 0x000, 0xFFF, 
   /*               0      1      2      3      4      5      6      7      8 */
-  	       0xC0A, 0xAF1, 0x711, 0x1FF, 0x000, 0x000};		
+  	       0xC0A, 0x2F1, 0xe11, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
-  int DAC[] = {0xFFF, 0xFFF, 0xFFF, 0xFFF};
+  int DAC[] = {0x000, 0x000, 0x000, 0x000};
 
   int i;
   for (i = 0; i<TDC_REG_NUM; i++)
@@ -183,7 +183,7 @@ void MezzTesterBoard::TDCcmd(int cmd)
     case GR: serial.Writeln("tc 2"); break;
     case ECR: serial.Writeln("tc 3"); break;
     }
-  sleep(.0001);
+  //sleep(.0001);
 }
 
 void MezzTesterBoard::TDCBCR(int n)
@@ -267,6 +267,7 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
   if (EnabledChannel == ALL_OFF)
     {
       printf("ERROR: got hits with all channels on TDC disabled\n");
+      // return READSIZE_ERROR;
     }
 
   for (int i=1; i < readsize-1; i++)
@@ -279,7 +280,7 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
 	}
       HitReadout->hits[i-1].channel = (readbuf[i] & 0x00F80000) >> 19;
       if (HitReadout->hits[i-1].channel != EnabledChannel)
-	printf("ERROR: Hit on channel %d, but only channle %d enabled\n",
+	printf("ERROR: Hit on channel %d, but only channel %d enabled\n",
 	       HitReadout->hits[i-1].channel, EnabledChannel);
       HitReadout->hits[i-1].edge = (readbuf[i] & 0x00040000) >> 18;
       HitReadout->hits[i-1].error = (readbuf[i] & 0x00020000) >> 17;
