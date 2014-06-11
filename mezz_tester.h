@@ -2,6 +2,7 @@
 #define TESTER_H
 
 #include <mezz_tester_board.h>
+#include <fstream>
 
 class MezzTester
 {
@@ -18,12 +19,19 @@ class MezzTester
   void printTDCStatus();
   void printTDCHits();
   int  getReadout();
+  int getTotalHits() {return totalhits;}
+  void resetTotalHits() {totalhits = 0;}
   HitReadout_s * retReadout() {return &(HitReadout);} 
+  void saveHits();
   
   MezzTesterBoard Board;
  private:
-  TDCStatus_s TDCStatus;
+  void initFile();
   HitReadout_s HitReadout;
+  TDCStatus_s TDCStatus;
+  int totalhits;
+  int savedhits;
+  FILE* hitFile;
 };
 
 #endif

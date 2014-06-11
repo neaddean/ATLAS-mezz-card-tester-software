@@ -38,6 +38,31 @@
 #define CONTROL_PARITY_ERROR 1<<7
 #define JTAG_PARITY_ERROR 1<<8
 
+#define CAL_INJECT_MASK 0
+#define CAL_INJ_CAPS 1
+#define DISC1_THR 2
+#define DISC2_THR 3
+#define DISC1_HYSTERSIS 4
+#define INTEGRATION_GATE 5
+#define RUNDOWN_CURRENT 6
+#define DEADTIME 7
+#define CHANNEL_LOWER 8
+#define CHANNEL_UPPER 9
+#define CHIP_MODE 0
+
+#define MASK_WINDOW 1
+#define SEARCH_WINDOW 2
+#define MATCH_WINDOW 3
+#define REJECT_OFFSET 4
+#define EVENT_OFFSET 5
+#define BUNCH_OFFSET 6
+#define COARSE_OFFSET 7
+#define COUNT_ROLLOVER 8
+#define CHANNEL_11_0 13
+#define CHANNEL_23_12 14
+
+#define ALL_OFF 24
+
 typedef struct TDCStatus_s 
 {
   int rfifo;
@@ -55,6 +80,7 @@ typedef struct TDCHit_s
   int error;
   int coarseTime;
   int fineTime;
+  float hitTime;
 } TDCHit_s;
 
 typedef struct HitReadout_s
@@ -88,6 +114,8 @@ class MezzTesterBoard
   int  GetDAC(int n) {return DACRegs[n];}
   int  GetChannelMask() {return ChannelMask;}
   void SetChannelMask(int mask) {ChannelMask=mask;}
+  void SetChannel(int set_channel);
+  int  getChannel() {return EnabledChannel;}
   void SetStrobePulsePeriod(int value) {StrobePulsePeriod=value;}
   int  GetStrobePulsePeriod() {return StrobePulsePeriod;}
   void SetHitPeriod(int value) {HitPeriod=value;}
@@ -116,6 +144,7 @@ class MezzTesterBoard
   int ChannelMask;
   int StrobePulsePeriod;
   int HitPeriod;
+  int EnabledChannel;
 };
 
 

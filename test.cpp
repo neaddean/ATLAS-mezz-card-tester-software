@@ -14,6 +14,7 @@
 volatile bool running;
 void signalHandler(int signum)
 {
+  (void) signum;
   printf("Shutting down\n");
   running = false;
 }
@@ -70,53 +71,29 @@ int main(int argc, char ** argv)
   //Start main loop
   //==============================================================                      
   MezzTester GoodLuck(argv[1], 0xFFFFFF);
-  FILE * hitFile;
-  hitFile = fopen("hits.txt", "w");
-  HitReadout_s *hitz = NULL;
-  fprintf(hitFile, "\thit#\tchannel\tedge\terror\tcoarse\tfine\tabs\n");
-  GoodLuck.Board.SetHitPeriod(790);
+  GoodLuck.Board.SetHitPeriod(900);
+  GoodLuck.Board.SetChannel(12);
   running = true;
-  int totalhits = 0;
-  for (int i=0; i < 1000; i++)
+
+  for (int i=0; i < 10000; i++)
     {
-      GoodLuck.Board.TDCcmd(BCR);
+      // GoodLuck.Board.TDCcmd(ECR);
       while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
-	{
-	  GoodLuck.Board.TDCcmd(TRIGGER);
+      	{
+      	  GoodLuck.Board.TDCcmd(TRIGGER);
 	}
       if (GoodLuck.getReadout() > NO_HITS)
 	{
 	  // printf("\n\n-----------------------------------------"
-	  // 	 "-------------------------------------------\n");    
-	  // GoodLuck.printTDCHits();
-	  hitz = GoodLuck.retReadout();
-	  for (int k = 0; k < hitz->numHits; k++)
-	    {
-	      fprintf(hitFile, "\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%d\n",
-		      i, hitz->hits[i].channel, hitz->hits[i].edge, 
-		      hitz->hits[i].error,hitz->hits[i].coarseTime, 
-		      hitz->hits[i].fineTime, 
-		      hitz->hits[i].coarseTime*32 + hitz->hits[i].fineTime);
-	      totalhits++;
-	    }
+	  // 	 "-------------------------------------------\n");
+	  //GoodLuck.printTDCHits();
+	  //GoodLuck.saveHits();
 	} 
-      sleep(.005);
       if (i%100 == 0)
-	printf("%d%% done with %d hits\n", i/10, totalhits);
+	printf("%d%% done with %d/%d hits\n", i/100, GoodLuck.getTotalHits(), i);
       if (!running)
       	break;
     }
-  printf("total hits: %d\n", totalhits);
-  fclose(hitFile);
-
-
-
-
-  //GoodLuck->Board.serial.Writeln("tc 2");
-  //GoodLuck->Board.TDCcmd(BCR);
-  //GoodLuck->Board.SetHitPeriod(period);
-  //GoodLuck->Board.UpdateInjector();
-  //GoodLuck->printTDCStatus();
-
+  printf("%d total hits\n", GoodLuck.getTotalHits());
   return 0;
 }

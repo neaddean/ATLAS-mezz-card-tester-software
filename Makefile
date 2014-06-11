@@ -1,4 +1,4 @@
-CXXFLAGS+=-c -Wall -Werror -O2 -g -I.
+CXXFLAGS+=-c -Wall -Wextra -Werror -O2 -g -I.
 CFLAGS+=-I. -O2
 LDFLAGS+=-L./ -g -O2
 

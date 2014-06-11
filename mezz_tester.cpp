@@ -6,15 +6,28 @@
 MezzTester::MezzTester(char* device_name, int ChannelMask) 
                   : Board(device_name, ChannelMask)
 {
+  initFile();
+  totalhits = 0;
+  savedhits = 0;
 }
 
 MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], char* device_name, 
    int ChannelMask) : Board(TDC, ASD, DAC,device_name, ChannelMask)
 {
+  initFile();
+  totalhits = 0;
+  savedhits = 0;
+}
+
+void MezzTester::initFile()
+{
+  hitFile = fopen("hits.txt", "w");
+  fprintf(hitFile, "thit#\teventID\thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
 }
 
 MezzTester::~MezzTester()
 {
+  fclose(hitFile);
 }
 
 void MezzTester::getTDCStatus()
@@ -42,7 +55,10 @@ void MezzTester::getTDCStatus(TDCStatus_s * TDCStatus)
 
 int MezzTester::getReadout()
 {
-  return Board.ReadFIFO(&(this->HitReadout));
+  int ret = Board.ReadFIFO(&(this->HitReadout));
+  if (ret > NO_HITS)
+    totalhits += HitReadout.numHits;
+  return ret;
 }
 
 
@@ -73,29 +89,29 @@ void MezzTester::printTDCError(int errmask)
 void MezzTester::printTDCStatus()
 {
   getTDCStatus();
-  int fifoflag = Board.FIFOFlags();
-  switch(fifoflag)
-    {
-    case FIFO_EMPTY: printf("fifo is empty.\n"); break;
-    case FIFO_NOT_EMPTY: printf("fifo is not empty.\n"); break;
-    case FIFO_FULL: printf("fifo is full.\n"); break;
-    default: printf("fifo is invalid. Register value: %04X\n", fifoflag);
-    }
-  switch(TDCStatus.rfifo)
-    {
-    case FIFO_EMPTY: printf("rfifo is empty.\n"); break;
-    case FIFO_NOT_EMPTY: printf("rfifo is not empty.\n"); break;
-    case FIFO_FULL: printf("rfifo is full.\n"); break;
-    default: printf("rfifo is invalid. Register value: %04X\n", TDCStatus.tfifo);
-    }
-  switch(TDCStatus.tfifo)
-    {
-    case FIFO_EMPTY: printf("tfifo is empty.\n"); break;
-    case FIFO_NOT_EMPTY: printf("tfifo is not empty.\n"); break;
-    case FIFO_NEARLY_FULL: printf("tfifo is nearly full.\n"); break;
-    case FIFO_FULL: printf("tfifo is full.\n"); break;
-    default: printf("tfifo is invalid. Register value: %04X.\n", TDCStatus.tfifo);
-    }
+  // int fifoflag = Board.FIFOFlags();
+  // switch(fifoflag)
+  //   {
+  //   case FIFO_EMPTY: printf("fifo is empty.\n"); break;
+  //   case FIFO_NOT_EMPTY: printf("fifo is not empty.\n"); break;
+  //   case FIFO_FULL: printf("fifo is full.\n"); break;
+  //   default: printf("fifo is invalid. Register value: %04X\n", fifoflag);
+  //   }
+  // switch(TDCStatus.rfifo)
+  //   {
+  //   case FIFO_EMPTY: printf("rfifo is empty.\n"); break;
+  //   case FIFO_NOT_EMPTY: printf("rfifo is not empty.\n"); break;
+  //   case FIFO_FULL: printf("rfifo is full.\n"); break;
+  //   default: printf("rfifo is invalid. Register value: %04X\n", TDCStatus.tfifo);
+  //   }
+  // switch(TDCStatus.tfifo)
+  //   {
+  //   case FIFO_EMPTY: printf("tfifo is empty.\n"); break;
+  //   case FIFO_NOT_EMPTY: printf("tfifo is not empty.\n"); break;
+  //   case FIFO_NEARLY_FULL: printf("tfifo is nearly full.\n"); break;
+  //   case FIFO_FULL: printf("tfifo is full.\n"); break;
+  //   default: printf("tfifo is invalid. Register value: %04X.\n", TDCStatus.tfifo);
+  //   }
   //printf("tfifo occupancy: %d.\n", TDCStatus.tfifo_occ);
   //printf("coarse counter: %d.\n", TDCStatus.coarse_counter);
   // if (TDCStatus.running != 0)
@@ -109,16 +125,35 @@ void MezzTester::printTDCHits()
   printf("Number of hits: %0d\n", HitReadout.numHits);
   printf("Event ID: %0d\n", HitReadout.eventID);
   printf("Bunch ID: %0d\n", HitReadout.bunchID);
-  printf("Errorflags: %04X\n", HitReadout.errorflags);
+  if (HitReadout.errorflags != 0)
+    printf("Errorflags: %04X\n", HitReadout.errorflags);
   if (HitReadout.numHits == 0)
     return;
-  printf("\thit#\tchannel\tedge\terror\tcoarse\tfine\n");
+  printf("thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
   for (int i=0; i<HitReadout.numHits; i++)
     {
-      printf("\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\n",
-	     i, HitReadout.hits[i].channel, HitReadout.hits[i].edge, HitReadout.hits[i].error, 
-	     HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime);
+      printf("\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
+	     i, HitReadout.hits[i].channel, 
+	     HitReadout.hits[i].edge, HitReadout.hits[i].error, 
+	     HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime, 
+	     HitReadout.hits[i].hitTime);
     } 
   if (HitReadout.errorflags != 0)
     printTDCError(HitReadout.errorflags);
+}
+
+void MezzTester::saveHits()
+{
+  if (HitReadout.numHits==0)
+    return;
+  for (int i = 0; i < HitReadout.numHits; i++)
+    {
+      fprintf(hitFile, "%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
+	      ++savedhits, HitReadout.eventID, i, HitReadout.hits[i].channel, 
+	      HitReadout.hits[i].edge, HitReadout.hits[i].error,
+	      HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime, 
+	      HitReadout.hits[i].hitTime);
+    }
+  if (savedhits != totalhits)
+    printf("ERROR: not saving all recorded hits: total: %d saved: %d\n", totalhits, savedhits);
 }
