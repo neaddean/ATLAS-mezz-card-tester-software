@@ -58,37 +58,38 @@ int main(int argc, char ** argv)
   FILE* sweep_file;
   sweep_file = fopen("sweep_file.txt", "w");
   fprintf(sweep_file, "#thresh\trate\n");
-  // float rate = 0;
-  // int runhits = 0;b
+  float rate = 0;
+  int runhits = 0;
 
-  GoodLuck.Board.SetChannel(5);
-  while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
-    GoodLuck.Board.TDCcmd(TRIGGER);
-  GoodLuck.getReadout();
-  GoodLuck.printTDCHits();
+  // GoodLuck.Board.SetChannel(5);
+  // while (GoodLuck.getReadout() == NO_READOUT)
+  //   GoodLuck.Board.TDCcmd(TRIGGER);
+  // GoodLuck.getReadout();
+  // GoodLuck.printTDCHits();
 
-  // const int num_sweeps = 100;
-  // GoodLuck.Board.SetChannel(0);
-  // for (int thresh=0; thresh<255; thresh+=5)
-  //   {
-  //     GoodLuck.Board.SetASDReg(DISC1_THR, thresh);
-  //     GoodLuck.Board.UpdateASD();
-  //     GoodLuck.resetTotalHits();
-  //     for (int i=0; i<num_sweeps; i++)
-  // 	{
-  // 	  while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
-  // 	    GoodLuck.Board.TDCcmd(TRIGGER);
-  // 	  GoodLuck.getReadout();
-  // 	  if (!running)
-  // 	    break;
-  // 	}
-  //     runhits = GoodLuck.getTotalHits();
-  //     rate = (float)runhits/(.00001024*num_sweeps);
-  //     fprintf(sweep_file, "%0d\t%0d\t%f\n", 2*thresh-255, runhits, rate);
-  //     printf("%0d\t%0d\t%f\n", 2*thresh-255, runhits, rate);
-  //     if (!running)
-  // 	break;
-  //   }
+  const int num_sweeps = 100;
+  GoodLuck.Board.SetChannel(0);
+  for (int thresh=120; thresh<134; thresh+=1)
+    {
+      GoodLuck.Board.SetASDReg(DISC1_THR, thresh);
+      GoodLuck.Board.UpdateASD();
+      GoodLuck.resetTotalHits();
+      //GoodLuck.Board.TDCcmd(GR);
+      for (int i=0; i<num_sweeps; i++)
+  	{
+  	  while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
+  	    GoodLuck.Board.TDCcmd(TRIGGER);
+  	  GoodLuck.getReadout();
+  	  if (!running)
+  	    break;
+  	}
+      runhits = GoodLuck.getTotalHits();
+      rate = (float)runhits/(.000001*num_sweeps);
+      fprintf(sweep_file, "%0d\t%0d\t%g\n", 2*thresh-255, runhits, rate);
+      printf("%0d\t%0d\t%g\n", 2*thresh-255, runhits, rate);
+      if (!running)
+  	break;
+    }
 
   fclose(sweep_file);
 

@@ -22,10 +22,11 @@ class MezzTester
   int  getTotalHits() {return totalhits;}
   void resetTotalHits() {totalhits = 0;}
   HitReadout_s * retReadout() {return &(HitReadout);} 
-  void saveHits();
 
   MezzTesterBoard Board;
+
  private:
+  void saveHits();
   void initFile();
   HitReadout_s HitReadout;
   TDCStatus_s TDCStatus;

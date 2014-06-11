@@ -6,16 +6,16 @@
 
 MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
 {
-  int ASD[] = {0x00, 0x00, 127,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
+  int ASD[] = {0x00, 0x00, 108,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
   /*              0     1    2    3    4    5    6    7     8     9     A  */
   // int TDC[] = {0x000,   32,     39,    31,  3424,     0,  3464, 0x000,  3563, 
   // /*               0      1      2      3      4      5      6      7      8 */
   // 	       0xC0A, 0xAF1, 0xE11, 0x1FF, 0xfff, 0xfff};		
   // /*            9      A      B      C      D      E */
   
-  int TDC[] = {0x000,     0,    40,   48,     0,     0,     0, 0x000, 0xFFF, 
+  int TDC[] = {0x000,     0,    48,    40,    92,     0,   100,     0,   101, 
   /*               0      1      2      3      4      5      6      7      8 */
-  	       0xC0A, 0x2F1, 0xe11, 0x1FF, 0x000, 0x000};		
+  	       0xC0A, 0xA71, 0xe11, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
   int DAC[] = {0x000, 0x000, 0x000, 0x000};
 
@@ -198,7 +198,7 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
   int errortemp = 0;
   if (FIFOFlags() == FIFO_EMPTY)
     {
-      // printf("ERROR: There is nothing to read out...??....\n");
+      //printf("ERROR: There is nothing to read out...??....\n");
       readsize = NO_READOUT;
       return NO_READOUT;
     }
@@ -253,6 +253,8 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
     }
 
   HitReadout->errorflags = errortemp & 0x00003FFF;
+  if (HitReadout->errorflags != 0)
+    printf("ERROR: error flags: %04X\n", HitReadout->errorflags);
   HitReadout->numHits = readsize - 2;
   HitReadout->eventID = (readbuf[0] & 0x00FFF000) >> 12;
   HitReadout->bunchID = (readbuf[0] & 0x00000FFF);

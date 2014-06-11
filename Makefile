@@ -10,6 +10,7 @@ $(TEST):	test.o serial_io.o FDBlocking.o mezz_tester_board.o mezz_tester.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 clean:
-	@rm $(TEST) > /dev/null 2>&1
-	@rm *.o > /dev/null 2>&1
-	@rm *~ > /dev/null 2>&1
+#	@rm $(TEST) > /dev/null 2>&1
+#	@rm *.o > /dev/null 2>&1
+#	@rm *~ > /dev/null 2>&1
+	rm -v *o

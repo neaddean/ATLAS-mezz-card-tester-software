@@ -32,7 +32,8 @@ void MezzTester::initFile()
 
 MezzTester::~MezzTester()
 {
-  fclose(hitFile);
+  if (shouldSaveHits)
+    fclose(hitFile);
 }
 
 void MezzTester::getTDCStatus()
