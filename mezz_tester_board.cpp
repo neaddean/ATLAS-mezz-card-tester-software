@@ -5,20 +5,20 @@
 #include <errno.h>
 
 // This is the default constructor
-MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
+MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
 {
   int ASD[] = {0x00, 0x00, 108,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
   /*              0     1    2    3    4    5    6    7     8     9     A  */
-  // int TDC[] = {0x000,   32,     39,    31,  3424,     0,  3464,     0,  3563, 
+  int TDC[] = {0x000,   32,     39,    31,  3424,     0,  3464,     0,  3563, 
   // /*               0      1      2      3      4      5      6      7      8 */
   // 	       0xC0A, 0xAF1, 0xE11, 0x1FF, 0xfff, 0xfff};		
   // /*            9      A      B      C      D      E */
   
-  int TDC[] = {0x000,     0,   808,   800,  3024,     0,  3064,     0,  4000,
+  //int TDC[] = {0x000,     0,  1008,  1000,  2000,     0,  2008,     0,  4095,
   /*               0      1      2      3      4      5      6      7      8 */
-  // int TDC[] = {0x000,     0,   400,   408,  2000,     0,  2000,     0,  4095, 
+  // int TDC[] = {0x000,     0,  1008,  1000,  3024,     0,  3064,     0,  4095,
   // /*               0      1      2      3      4      5      6      7      8 */
-  	       0xC0A, 0xAF1, 0xF11, 0x1FF, 0x000, 0x000};		
+  	       0xC0A, 0xAF1, 0xF19, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
   int DAC[] = {0xFFF, 0xFFF, 0xFFF, 0xFFF};
 
@@ -45,7 +45,7 @@ MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
 }
 
 // This constructor takes the registers as parameters to override the default settings
-MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], char* device_name, 
+MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], const char* device_name, 
 		       int ChannelMask)
 {
   int i;
@@ -253,7 +253,11 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
     }
   // check that packet began with header
   if ((readbuf[0] & 0xA0000000) != 0xA0000000)
+    {
     printf("ERROR: packet did not begin with header.\n");
+      for (int i=0; i<readsize; i++)
+	printf("\t%d\t%08X\n", i, readbuf[i]);
+    }
 
   // check number of words written to number received (including header)
   int expected_read = (readbuf[readsize] & 0x000000FFF);
@@ -280,7 +284,11 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
   // check that packet ended with trailer
 
   if ((readbuf[readsize-1] & 0xC0000000) != 0xC0000000)
-    printf("ERROR: packet did not end with trailer\n");
+    {
+      printf("ERROR: packet did not end with trailer\n");
+      for (int i=0; i<readsize; i++)
+	printf("\t%d\t%08X\n", i, readbuf[i]);
+    }
 
   if (readsize == RFIFO_DEPTH)
     printf("ERROR: readsize > RFIFO_DEPTH,\treadsize:%d\tRFIFO_DEPTH:%d\n", 
@@ -307,8 +315,8 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
   // save error flags
   HitReadout->errorflags = errortemp & 0x00003FFF;
   // write error flags if present
-  if (HitReadout->errorflags != 0)
-    printf("ERROR: error flags: %04X\n", HitReadout->errorflags);
+  //if (HitReadout->errorflags != 0)
+    //  printf("ERROR: error flags: %04X\n", HitReadout->errorflags);
   // number of hits is packet size - errorflags - header/trailer;
   HitReadout->numHits = readsize - 2;
   // mask and save event ID
@@ -372,7 +380,7 @@ int MezzTesterBoard::FIFOFlags()
   else if (buffer[0]==0x30 && buffer[1]==0x30)
     return FIFO_NOT_EMPTY;
    
-  printf("ERROR: Fifo flags in invalid state, %s\n", buffer);
+  printf("ERROR: Fifo flags in invalid state, buffer:%s\n", buffer);
   return FIFO_INVALID;
 
 }

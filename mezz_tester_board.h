@@ -13,7 +13,7 @@
 #define FIFO_NEARLY_FULL 4
 #define FIFO_INVALID -1
 
-#define RFIFO_DEPTH 64
+#define RFIFO_DEPTH 8000
 
 #define TRIGGER 0
 #define BCR 1
@@ -100,8 +100,8 @@ typedef struct HitReadout_s
 class MezzTesterBoard
 {
  public:
-  MezzTesterBoard(char* device_name, int ChannelMask = 0x000000);
-  MezzTesterBoard(int TDC[15], int ASD[10], int DAC[4], char* device_name, 
+  MezzTesterBoard(const char* device_name, int ChannelMask = 0x000000);
+  MezzTesterBoard(int TDC[15], int ASD[10], int DAC[4], const char* device_name, 
 	     int ChannelMask = 0x000000);
   ~MezzTesterBoard();
 

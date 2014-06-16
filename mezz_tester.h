@@ -7,8 +7,8 @@
 class MezzTester
 {
  public:
-  MezzTester(char* device_name, bool shouldSave, int ChannelMask = 0x000000);
-  MezzTester(int TDC[15], int ASD[10], int DAC[4], char* device_name, 
+  MezzTester(const char* device_name, bool shouldSave, int ChannelMask = 0x000000);
+  MezzTester(int TDC[15], int ASD[10], int DAC[4], const char* device_name, 
 	     bool shouldSave, int ChannelMask = 0x000000);
   ~MezzTester();
 

@@ -52,69 +52,66 @@ int main(int argc, char ** argv)
   //==============================================================                      
   //Start main loop
   //==============================================================                      
-  MezzTester GoodLuck(argv[1], 0xffffff, true);
+  MezzTester GoodLuck(argv[1], 0x000000, true);
   running = true;
-  // FILE* sweep_file;
-  // sweep_file = fopen("sweep_file.txt", "w");
-  // fprintf(sweep_file, "#thresh\trate\n");
-  // float rate = 0;
-  // int runhits = 0;
+  
+  FILE* sweep_file;
+  sweep_file = fopen("sweep.txt", "w");
+  fprintf(sweep_file, "#thresh\trate\n");
+  float rate = 0;
+  int runhits = 0;
 
-  GoodLuck.Board.SetASDReg(DISC1_THR, 120);
+  const int num_sweeps = 100;
   GoodLuck.Board.SetChannel(0);
-  GoodLuck.Board.UpdateBoard();
-  for(int i = 0; i<3; i++)
+  for (int thresh=0; thresh<255; thresh+=2)
     {
-      GoodLuck.Board.SetHitPeriod(i);
-      GoodLuck.Board.UpdateInjector();
-      while (GoodLuck.getReadout() == NO_READOUT)
-	GoodLuck.Board.TDCcmd(TRIGGER);
-      GoodLuck.getReadout();
-      GoodLuck.printTDCHits();
+      GoodLuck.Board.SetASDReg(DISC1_THR, thresh);
+      GoodLuck.Board.UpdateASD();
+      GoodLuck.resetTotalHits();
+      //GoodLuck.Board.TDCcmd(GR);
+      for (int i=0; i<num_sweeps; i++)
+  	{
+  	  while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
+	    {
+	      GoodLuck.Board.TDCcmd(BCR);
+	      GoodLuck.Board.TDCcmd(TRIGGER);
+	    }
+  	  GoodLuck.getReadout();
+  	  if (!running)
+  	    break;
+  	}
+      runhits = GoodLuck.getTotalHits();
+      rate = (float)runhits/(.000025*num_sweeps);
+      fprintf(sweep_file, "%0d\t%0d\t%g\n", 2*(thresh-127), runhits, rate);
+      printf("%0d\t%0d\t%g\n", 2*(thresh-127), runhits, rate);
       if (!running)
-	break;
+  	break;
     }
 
+  fclose(sweep_file);
 
-  // const int num_sweeps = 100;
-  // GoodLuck.Board.SetChannel(13);
-  // for (int thresh=97; thresh<157; thresh+=1)
+  // GoodLuck.Board.SetASDReg(DISC1_THR, 80);
+  // GoodLuck.Board.SetChannel(0);
+  // GoodLuck.Board.SetHitPeriod(25);
+  // GoodLuck.Board.UpdateBoard();
+  // int i ;
+  // for(i = 0; i<500; i++)
   //   {
-  //     GoodLuck.Board.SetASDReg(DISC1_THR, thresh);
-  //     GoodLuck.Board.UpdateASD();
-  //     GoodLuck.resetTotalHits();
-  //     //GoodLuck.Board.TDCcmd(GR);
-  //     for (int i=0; i<num_sweeps; i++)
+  //     // GoodLuck.Board.SetHitPeriod(i);
+  //     // GoodLuck.Board.UpdateInjector();
+  //     while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
+  // 	GoodLuck.Board.TDCcmd(TRIGGER);
+  //     //      GoodLuck.getReadout();
+  //     if (GoodLuck.getReadout() > NO_HITS)
   // 	{
-  // 	  while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
-  // 	    GoodLuck.Board.TDCcmd(TRIGGER);
-  // 	  GoodLuck.getReadout();
-  // 	  if (!running)
-  // 	    break;
+  // 	  // printf("-------------------------------------\n");
+  // 	  // GoodLuck.printTDCHits();
   // 	}
-  //     runhits = GoodLuck.getTotalHits();
-  //     rate = (float)runhits/(.00002*num_sweeps);
-  //     fprintf(sweep_file, "%0d\t%0d\t%g\n", 2*thresh-255, runhits, rate);
-  //     printf("%0d\t%0d\t%g\n", 2*thresh-255, runhits, rate);
   //     if (!running)
   // 	break;
   //   }
 
-  // fclose(sweep_file);
+  // printf("total hits:%d/%d\n", GoodLuck.getTotalHits(), i);
 
   return 0;
 }
-
-  // for (int i=0; i < 10000; i++)
-  //   {
-  //     while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
-  //     	  GoodLuck.Board.TDCcmd(TRIGGER);
-  //     if (GoodLuck.getReadout() > NO_HITS)
-  // 	{
-  // 	} 
-  //     if (i%100 == 0)
-  // 	printf("%d%% done with %d/%d hits\n", i/100, GoodLuck.getTotalHits(), i);
-  //     if (!running)
-  //     	break;
-  //   }
-  // printf("%d total hits\n", GoodLuck.getTotalHits());

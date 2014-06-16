@@ -4,7 +4,7 @@
 
 
 // default constructor is same scheme as MezzTesterBoard
-MezzTester::MezzTester(char* device_name, bool shouldSave, int ChannelMask) 
+MezzTester::MezzTester(const char* device_name, bool shouldSave, int ChannelMask) 
                   : Board(device_name, ChannelMask)
 {
   totalhits = 0;
@@ -15,7 +15,7 @@ MezzTester::MezzTester(char* device_name, bool shouldSave, int ChannelMask)
 }
 
 // same scheme as MezzTesterBoard
-MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], char* device_name, 
+MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], const char* device_name, 
 		       bool shouldSave, int ChannelMask) 
                   : Board(TDC, ASD, DAC,device_name, ChannelMask)
 {
