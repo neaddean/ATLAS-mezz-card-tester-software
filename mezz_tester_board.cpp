@@ -9,16 +9,18 @@ MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
 {
   int ASD[] = {0x00, 0x00, 108,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
   /*              0     1    2    3    4    5    6    7     8     9     A  */
-  // int TDC[] = {0x000,   32,     39,    31,  3424,     0,  3464, 0x000,  3563, 
+  // int TDC[] = {0x000,   32,     39,    31,  3424,     0,  3464,     0,  3563, 
   // /*               0      1      2      3      4      5      6      7      8 */
   // 	       0xC0A, 0xAF1, 0xE11, 0x1FF, 0xfff, 0xfff};		
   // /*            9      A      B      C      D      E */
   
-  int TDC[] = {0x000,     0,    48,    40,     0,     0,     0, 0x000, 0xFFF,
+  int TDC[] = {0x000,     0,   808,   800,  3024,     0,  3064,     0,  4000,
   /*               0      1      2      3      4      5      6      7      8 */
+  // int TDC[] = {0x000,     0,   400,   408,  2000,     0,  2000,     0,  4095, 
+  // /*               0      1      2      3      4      5      6      7      8 */
   	       0xC0A, 0xAF1, 0xF11, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
-  int DAC[] = {0x000, 0x000, 0x000, 0x000};
+  int DAC[] = {0xFFF, 0xFFF, 0xFFF, 0xFFF};
 
   int i;
   for (i = 0; i<TDC_REG_NUM; i++)
@@ -168,6 +170,9 @@ void MezzTesterBoard::GetStatus(TDCStatus_s * TDCStatus)
   coarse_counter |= (statusbuf[4] << 1);
 
   TDCStatus->coarse_counter = coarse_counter;
+
+  // readout fifo occupancy
+  TDCStatus->rfifo_occ = statusbuf[5] & 0x03F;
 }
 
 // flush all register

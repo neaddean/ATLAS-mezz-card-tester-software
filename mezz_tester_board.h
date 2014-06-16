@@ -73,6 +73,7 @@ typedef struct TDCStatus_s
   int errorflags;
   int tfifo;
   int tfifo_occ;
+  int rfifo_occ;
   int coarse_counter;
   int running;
 } TDCStatus_s;

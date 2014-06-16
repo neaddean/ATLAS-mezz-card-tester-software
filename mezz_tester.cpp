@@ -60,6 +60,8 @@ int MezzTester::getReadout()
     totalhits += HitReadout.numHits;
   if (shouldSaveHits)
     saveHits();
+  if (HitReadout.errorflags != 0)
+    printTDCError(HitReadout.errorflags);
   return ret;
 }
 
@@ -127,6 +129,7 @@ void MezzTester::printTDCStatus()
   //   default: printf("tfifo is invalid. Register value: %04X.\n", TDCStatus.tfifo);
   //   }
   //printf("tfifo occupancy: %d.\n", TDCStatus.tfifo_occ);
+  //printf("rfifo occupancy: %d.\n", TDCStatus.rfifo_occ);
   //printf("coarse counter: %d.\n", TDCStatus.coarse_counter);
   // if (TDCStatus.running != 0)
   //   printf("ERROR: TDC RUNNING\n");
@@ -163,11 +166,12 @@ void MezzTester::saveHits()
   for (int i = 0; i < HitReadout.numHits; i++)
     {
       fprintf(hitFile, "%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
-	      ++savedhits, HitReadout.eventID, i, HitReadout.hits[i].channel, 
+	      savedhits, HitReadout.eventID, i, HitReadout.hits[i].channel, 
 	      HitReadout.hits[i].edge, HitReadout.hits[i].error,
 	      HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime, 
 	      HitReadout.hits[i].hitTime);
+      savedhits+=1;
     }
-  if ((savedhits != totalhits) && shouldSaveHits)
-    printf("ERROR: not saving all recorded hits: total: %d saved: %d\n", totalhits, savedhits);
+  // if ((savedhits != totalhits) && shouldSaveHits)
+  //   printf("ERROR: not saving all recorded hits: total: %d saved: %d\n", totalhits, savedhits);
 }
