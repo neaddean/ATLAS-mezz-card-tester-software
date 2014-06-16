@@ -13,7 +13,6 @@ class MezzTester
   ~MezzTester();
 
   void getTDCStatus();
-  void getTDCStatus(TDCStatus_s * TDCStatus);
   int  TDCRunning();
   void printTDCError(int errmask);
   void printTDCStatus();

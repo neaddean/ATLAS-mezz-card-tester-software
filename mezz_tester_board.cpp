@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
+// This is the default constructor
 MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
 {
   int ASD[] = {0x00, 0x00, 108,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
@@ -13,9 +14,9 @@ MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
   // 	       0xC0A, 0xAF1, 0xE11, 0x1FF, 0xfff, 0xfff};		
   // /*            9      A      B      C      D      E */
   
-  int TDC[] = {0x000,     0,    48,    40,    92,     0,   100,     0,   101, 
+  int TDC[] = {0x000,     0,    48,    40,     0,     0,     0, 0x000, 0xFFF,
   /*               0      1      2      3      4      5      6      7      8 */
-  	       0xC0A, 0xA71, 0xe11, 0x1FF, 0x000, 0x000};		
+  	       0xC0A, 0xAF1, 0xF11, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
   int DAC[] = {0x000, 0x000, 0x000, 0x000};
 
@@ -41,6 +42,7 @@ MezzTesterBoard::MezzTesterBoard(char* device_name, int ChannelMask)
   printf("MezzTesterBoard Online.\n");
 }
 
+// This constructor takes the registers as parameters to override the default settings
 MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], char* device_name, 
 		       int ChannelMask)
 {
@@ -67,6 +69,7 @@ MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], char* devic
   printf("MezzTesterBoard Online.\n");
 }
 
+// Powers off the board and closes the serial port
 MezzTesterBoard::~MezzTesterBoard()
 {
   Power(OFF);
@@ -74,6 +77,8 @@ MezzTesterBoard::~MezzTesterBoard()
   printf("MezzTesterBoard Offline.\n");
 }
 
+// Takes a power command as a parameter. 
+// Further initialization takes place elsewhere
 void MezzTesterBoard::Power(int pwr)
 {
   switch (pwr)
@@ -84,6 +89,7 @@ void MezzTesterBoard::Power(int pwr)
     }
 }
 
+// Resets the CLI, makes all GPIO outputs and writes all registers
 void MezzTesterBoard::Init()
 {
   serial.Writeln(" ");
@@ -95,6 +101,7 @@ void MezzTesterBoard::Init()
   ResetFIFO();
 }
 
+// Reset/init the board
 void MezzTesterBoard::BoardReset()
 {
   Power(RESET);
@@ -102,12 +109,13 @@ void MezzTesterBoard::BoardReset()
   UpdateBoard();
 }
 
-
+// Reads the TDC status register and fills in the struct
 void MezzTesterBoard::GetStatus(TDCStatus_s * TDCStatus)
 {
   char buffer[20];
   int statusbuf[6];
   
+  // read status registers into a buffer
   serial.Writeln(" ");
   serial.Writeln("jts", false);
   // printf("-----ASCII : HEX-----\n");
@@ -121,6 +129,7 @@ void MezzTesterBoard::GetStatus(TDCStatus_s * TDCStatus)
   int tempmask = 0;
   tempmask = statusbuf[0];
 
+  // readout fifo status
   tempmask &= 0xC00;
   if (tempmask==0x800)
     TDCStatus->rfifo = FIFO_EMPTY;
@@ -130,11 +139,13 @@ void MezzTesterBoard::GetStatus(TDCStatus_s * TDCStatus)
     TDCStatus->rfifo = FIFO_INVALID;
 
   tempmask = statusbuf[0];
+  // error flags
   tempmask &= 0x1FF;
   TDCStatus->errorflags = tempmask;
 
   tempmask = statusbuf[2];
 
+  // trigger fifo status
   tempmask &= 0xE00;
   if (tempmask==0x800)
     TDCStatus->tfifo = FIFO_EMPTY;
@@ -145,10 +156,13 @@ void MezzTesterBoard::GetStatus(TDCStatus_s * TDCStatus)
   else
     TDCStatus->tfifo = FIFO_INVALID;
 
+  // running flags
   TDCStatus->running = ((statusbuf[2] & 0x100) >> 8);
 
+  // trigger fifo occupancy
   TDCStatus->tfifo_occ = ((statusbuf[3] & 0x700) >> 8);
 
+  // coarse counter 
   int coarse_counter = 0;
   coarse_counter = (statusbuf[3] & 0x800) >> 11;
   coarse_counter |= (statusbuf[4] << 1);
@@ -156,6 +170,7 @@ void MezzTesterBoard::GetStatus(TDCStatus_s * TDCStatus)
   TDCStatus->coarse_counter = coarse_counter;
 }
 
+// flush all register
 void MezzTesterBoard::UpdateBoard()
 {
   UpdateTDC();
@@ -163,6 +178,7 @@ void MezzTesterBoard::UpdateBoard()
   UpdateInjector();
 }
 
+// update only relevant pulse injector registers
 void MezzTesterBoard::UpdateInjector()
 {
   char outbuf[20];
@@ -174,6 +190,7 @@ void MezzTesterBoard::UpdateInjector()
   serial.Writeln(outbuf);
 }
 
+// send either TRIGGER, ECR, GR, or BCR
 void MezzTesterBoard::TDCcmd(int cmd)
 {
   switch (cmd)
@@ -186,6 +203,8 @@ void MezzTesterBoard::TDCcmd(int cmd)
   //sleep(.0001);
 }
 
+// periodic bunch count reset has not been implemented yet
+// except for what is already on TDC
 void MezzTesterBoard::TDCBCR(int n)
 {
   (void) n;
@@ -195,7 +214,9 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
 {
   unsigned int readbuf[RFIFO_DEPTH];
   int readsize = 0;
+  // temporary error flag
   int errortemp = 0;
+  // cannot get stuck reading empty fifo or program will freeze
   if (FIFOFlags() == FIFO_EMPTY)
     {
       //printf("ERROR: There is nothing to read out...??....\n");
@@ -206,14 +227,17 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
   //printf("\t#\tASCII\t\tHEX\n");
   char buffer[20];
   serial.Writeln(" ");
+  // read command
   serial.Writeln("tr", false);
   for (readsize = 0; readsize<RFIFO_DEPTH; )
     {
       serial.Readln(buffer, 20);
       readbuf[readsize] = (unsigned int)strtoul(buffer, NULL, 16);
+      // check for error word, if it exists then save to temporary error flag
+      // and do not increment the write pointer
       if ((readbuf[readsize] & 0x60000000) == 0x60000000)
 	{
-	  errortemp = readbuf[readsize];
+	  errortemp |= readbuf[readsize];
 	  //printf("\t%-d\t%s\t%08X\n", readsize, buffer, readbuf[readsize]);
 	  continue;
 	}
@@ -222,11 +246,19 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
 	break;
       readsize++;
     }
-
+  // check that packet began with header
   if ((readbuf[0] & 0xA0000000) != 0xA0000000)
     printf("ERROR: packet did not begin with header.\n");
 
-  int expected_read = (readbuf[readsize] & 0x000000FFF) + ((errortemp==0)? 0 : -1);
+  // check number of words written to number received (including header)
+  int expected_read = (readbuf[readsize] & 0x000000FFF);
+  // if hard error flag recieved, subtract from expected words
+  if ((errortemp & 0x00003E00) != 0)
+    expected_read--;
+  // if temporal error flag recieved
+  if ((errortemp & 0x000001FF) != 0)
+    expected_read--;
+  // must account for the trailer because quantity starts at 1, not 0
   readsize++;
   if (expected_read != readsize)
     {
@@ -236,51 +268,76 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
 	printf("\t%d\t%08X\n", i, readbuf[i]);
       if (errortemp != 0)
 	printf("\tE\t%08X\n", errortemp);
-      sleep(100);
+      // allow time for user interaction
+      sleep(20);
     }
   
-  if ((readsize == RFIFO_DEPTH) && ((readbuf[readsize & 0xC0000000]) != 0xC0000000))
+  // check that packet ended with trailer
+
+  if ((readbuf[readsize-1] & 0xC0000000) != 0xC0000000)
     printf("ERROR: packet did not end with trailer\n");
+
+  if (readsize == RFIFO_DEPTH)
+    printf("ERROR: readsize > RFIFO_DEPTH,\treadsize:%d\tRFIFO_DEPTH:%d\n", 
+	   readsize, RFIFO_DEPTH);
+
+  // if ((readsize == RFIFO_DEPTH) && ((readbuf[readsize-1] & 0xC0000000) != 0xC0000000))
+  //   printf("ERROR: packet did not end with trailer\n");
   
+  if ((readbuf[readsize-1] & 0x00FFF000) != (readbuf[0] & 0x00FFF000))
+    printf("ERROR: header and trailer event ID do not match\n");
+
   //==============================
   // Parsing
   //==============================
 
+  // must have read at least a header and trailer
+  // this code should never execute 
   if (readsize < 2)
     {
       printf("ERROR: readsize= %d\n", readsize);
       return READSIZE_ERROR;
     }
 
+  // save error flags
   HitReadout->errorflags = errortemp & 0x00003FFF;
+  // write error flags if present
   if (HitReadout->errorflags != 0)
     printf("ERROR: error flags: %04X\n", HitReadout->errorflags);
+  // number of hits is packet size - errorflags - header/trailer;
   HitReadout->numHits = readsize - 2;
+  // mask and save event ID
   HitReadout->eventID = (readbuf[0] & 0x00FFF000) >> 12;
+  // mask and save bunch count ID
   HitReadout->bunchID = (readbuf[0] & 0x00000FFF);
 
+  // if there were no hits
   if (readsize == 2)
     {
-      HitReadout->numHits = 0;
+      //   HitReadout->numHits = 0;
       // printf("No hits\n");
       return NO_HITS;
     }
 
+  // if we had hits and all channels were disabled, then produce error
   if (EnabledChannel == ALL_OFF)
     {
       printf("ERROR: got hits with all channels on TDC disabled\n");
       // return READSIZE_ERROR;
     }
 
+  // parse hit data
   for (int i=1; i < readsize-1; i++)
     {
-      if (((readbuf[i]&0x30000000) != 0x30000000) && 
-	  ((readbuf[i]&0x60000000) != 0x60000000))
+      // make sure we are only reading measurement data
+      if ((readbuf[i] & 0x30000000) != 0x30000000)
 	{
-	  printf("ERROR: word is not measurement or error data: %08X\n", readbuf[i]);
+	  printf("ERROR: word is not measurement data: %08X\n", readbuf[i]);
 	  continue;
 	}
+      // record the channel
       HitReadout->hits[i-1].channel = (readbuf[i] & 0x00F80000) >> 19;
+      // make sure it was the enabled channel
       if (HitReadout->hits[i-1].channel != EnabledChannel)
 	printf("ERROR: Hit on channel %d, but only channel %d enabled\n",
 	       HitReadout->hits[i-1].channel, EnabledChannel);
@@ -288,8 +345,9 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
       HitReadout->hits[i-1].error = (readbuf[i] & 0x00020000) >> 17;
       HitReadout->hits[i-1].coarseTime = (readbuf[i] & 0x0001FFE0) >> 5;
       HitReadout->hits[i-1].fineTime = (readbuf[i] & 0x0000001F);
+      // calcualte trigger matched time in ns
       HitReadout->hits[i-1].hitTime = (HitReadout->hits[i-1].coarseTime*32 +
-	     HitReadout->hits[i-1].fineTime)*.78125;
+				       HitReadout->hits[i-1].fineTime)*.78125;
     }
 
   return 1;
@@ -309,8 +367,8 @@ int MezzTesterBoard::FIFOFlags()
   else if (buffer[0]==0x30 && buffer[1]==0x30)
     return FIFO_NOT_EMPTY;
    
-  return FIFO_INVALID;
   printf("ERROR: Fifo flags in invalid state, %s\n", buffer);
+  return FIFO_INVALID;
 
 }
 

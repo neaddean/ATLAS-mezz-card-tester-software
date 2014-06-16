@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 
+// default constructor is same scheme as MezzTesterBoard
 MezzTester::MezzTester(char* device_name, bool shouldSave, int ChannelMask) 
                   : Board(device_name, ChannelMask)
 {
@@ -13,6 +14,7 @@ MezzTester::MezzTester(char* device_name, bool shouldSave, int ChannelMask)
     initFile();
 }
 
+// same scheme as MezzTesterBoard
 MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], char* device_name, 
 		       bool shouldSave, int ChannelMask) 
                   : Board(TDC, ASD, DAC,device_name, ChannelMask)
@@ -24,40 +26,32 @@ MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], char* device_name,
     initFile();
 }
 
+// open hit saving file
 void MezzTester::initFile()
 {
   hitFile = fopen("hits.txt", "w");
   fprintf(hitFile, "thit#\teventID\thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
 }
 
+// close init file in the destructor
 MezzTester::~MezzTester()
 {
   if (shouldSaveHits)
     fclose(hitFile);
 }
 
+// get and save TDC status into class
 void MezzTester::getTDCStatus()
 {
   Board.GetStatus(&TDCStatus);
 }
 
+// poll running flag
 int MezzTester::TDCRunning()
 {
   getTDCStatus();
   return TDCStatus.running;
 } 
-
-void MezzTester::getTDCStatus(TDCStatus_s * TDCStatus)
-{
-  Board.GetStatus(&(this->TDCStatus));
-
-  TDCStatus->rfifo = this->TDCStatus.rfifo;
-  TDCStatus->errorflags = this->TDCStatus.errorflags;
-  TDCStatus->tfifo = this->TDCStatus.tfifo;
-  TDCStatus->tfifo_occ = this->TDCStatus.tfifo_occ;
-  TDCStatus->tfifo_occ = this->TDCStatus.coarse_counter;
-  TDCStatus->running = this->TDCStatus.running;
-}
 
 int MezzTester::getReadout()
 {
@@ -83,7 +77,11 @@ void MezzTester::printTDCError(int errmask)
   if(errmask & TRIGGER_FIFO_PAR_ERROR)
     printf("TDC error: trigger FIFO parity error.\n");
   if(errmask & TRIGGER_MATCHING_ERROR)
-    printf("TDC error: trigger matching error (state error).\n");
+    {
+      printf("TDC error: trigger matching error (state error).\n");
+      printf("Global reset sent.\n");
+      Board.TDCcmd(GR);
+    }
   if(errmask & READOUT_FIFO_PARITY_ERROR)
     printf("TDC error: readout FIFO parity error.\n");
   if(errmask & READOUT_STATE_ERROR)
@@ -92,6 +90,14 @@ void MezzTester::printTDCError(int errmask)
     printf("TDC error: control parity error.\n");
   if(errmask & JTAG_PARITY_ERROR)
     printf("TDC error: JTAG instruction parity error.\n");
+  if(errmask & L1_BUFFER_OVERFLOW_ERROR)
+    printf("TDC error: L1 buffer overflow error.\n");
+  if(errmask & TRIGGER_FIFO_OVERFLOW_ERROR)
+    printf("TDC error: trigger fifo overflow error.\n");
+  if(errmask & READOUT_FIFO_OVERFLOW_ERROR)
+    printf("TDC error: readout fifo overflow error.\n");
+  if(errmask & HIT_ERROR)
+    printf("TDC error: hit error.\n");
 }
 
 void MezzTester::printTDCStatus()

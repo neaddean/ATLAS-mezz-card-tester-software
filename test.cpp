@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
 
   const int num_sweeps = 100;
   GoodLuck.Board.SetChannel(0);
-  for (int thresh=120; thresh<134; thresh+=1)
+  for (int thresh=0; thresh<255; thresh+=5)
     {
       GoodLuck.Board.SetASDReg(DISC1_THR, thresh);
       GoodLuck.Board.UpdateASD();
