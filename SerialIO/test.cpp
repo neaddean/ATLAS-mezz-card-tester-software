@@ -85,12 +85,12 @@ int main(int argc, char ** argv)
       for (int i=0; i<num_sweeps; i++)
   	{
   	  while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
-	    {
-	      //GoodLuck.Board.TDCcmd(BCR);
-	      GoodLuck.Board.TDCcmd(TRIGGER);
-	    }
+  	    {
+  	      //GoodLuck.Board.TDCcmd(BCR);
+  	      GoodLuck.Board.TDCcmd(TRIGGER);
+  	    }
   	  GoodLuck.getReadout();
-	  GoodLuck.printTDCStatus();
+  	  GoodLuck.printTDCStatus();
   	  if (!running)
   	    break;
   	}
@@ -102,7 +102,7 @@ int main(int argc, char ** argv)
   	break;
     }
 
-  fclose(sweep_file);
+  // fclose(sweep_file);
 
   // GoodLuck.Board.SetASDReg(DISC1_THR, 80);
   // GoodLuck.Board.SetChannel(0);
