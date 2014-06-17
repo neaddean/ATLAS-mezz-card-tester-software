@@ -52,7 +52,7 @@
 #define DEADTIME 7
 #define CHANNEL_LOWER 8
 #define CHANNEL_UPPER 9
-#define CHIP_MODE 0
+#define CHIP_MODE 10
 
 #define MASK_WINDOW 1
 #define SEARCH_WINDOW 2

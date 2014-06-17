@@ -52,36 +52,50 @@ int main(int argc, char ** argv)
   //==============================================================                      
   //Start main loop
   //==============================================================                      
-  MezzTester GoodLuck(argv[1], 0x000000, true);
+  MezzTester GoodLuck(argv[1], true, 0x000000);
   running = true;
   
   FILE* sweep_file;
-  sweep_file = fopen("sweep.txt", "w");
+  sweep_file = fopen("sweep2.txt", "w");
   fprintf(sweep_file, "#thresh\trate\n");
   float rate = 0;
   int runhits = 0;
 
   const int num_sweeps = 100;
-  GoodLuck.Board.SetChannel(0);
-  for (int thresh=0; thresh<255; thresh+=2)
+  
+  const int match_window = 1000;
+  const int reject_offset = 2000;
+  const int bunch_offset = 20008;
+  const int coarse_offset = 0;
+  const int coarse_rollover = 3500;
+
+  GoodLuck.Board.SetTDCReg(MATCH_WINDOW, match_window);
+  GoodLuck.Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
+  GoodLuck.Board.SetTDCReg(REJECT_OFFSET, reject_offset);
+  GoodLuck.Board.SetTDCReg(BUNCH_OFFSET, bunch_offset);
+  GoodLuck.Board.SetTDCReg(COARSE_OFFSET, coarse_offset);
+  GoodLuck.Board.SetTDCReg(COUNT_ROLLOVER, coarse_rollover);
+  GoodLuck.Board.SetChannel(5);
+  GoodLuck.Board.UpdateBoard();
+  for (int thresh=100; thresh<180; thresh+=2)
     {
       GoodLuck.Board.SetASDReg(DISC1_THR, thresh);
       GoodLuck.Board.UpdateASD();
       GoodLuck.resetTotalHits();
-      //GoodLuck.Board.TDCcmd(GR);
       for (int i=0; i<num_sweeps; i++)
   	{
   	  while(GoodLuck.Board.FIFOFlags() == FIFO_EMPTY)
 	    {
-	      GoodLuck.Board.TDCcmd(BCR);
+	      //GoodLuck.Board.TDCcmd(BCR);
 	      GoodLuck.Board.TDCcmd(TRIGGER);
 	    }
   	  GoodLuck.getReadout();
+	  GoodLuck.printTDCStatus();
   	  if (!running)
   	    break;
   	}
       runhits = GoodLuck.getTotalHits();
-      rate = (float)runhits/(.000025*num_sweeps);
+      rate = (float)runhits/(.000000025*match_window*num_sweeps);
       fprintf(sweep_file, "%0d\t%0d\t%g\n", 2*(thresh-127), runhits, rate);
       printf("%0d\t%0d\t%g\n", 2*(thresh-127), runhits, rate);
       if (!running)

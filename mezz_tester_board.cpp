@@ -9,14 +9,14 @@ MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
 {
   int ASD[] = {0x00, 0x00, 108,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
   /*              0     1    2    3    4    5    6    7     8     9     A  */
-  int TDC[] = {0x000,   32,     39,    31,  3424,     0,  3464,     0,  3563, 
+  int TDC[] = {0x000,        0,    39,    31,  3424,     0,  3464,     0,  3563, 
   // /*               0      1      2      3      4      5      6      7      8 */
   // 	       0xC0A, 0xAF1, 0xE11, 0x1FF, 0xfff, 0xfff};		
   // /*            9      A      B      C      D      E */
   
   //int TDC[] = {0x000,     0,  1008,  1000,  2000,     0,  2008,     0,  4095,
   /*               0      1      2      3      4      5      6      7      8 */
-  // int TDC[] = {0x000,     0,  1008,  1000,  3024,     0,  3064,     0,  4095,
+  //int TDC[] = {0x000,     0,  1008,  1000,  3024,     0,  3064,     0,  4095,
   // /*               0      1      2      3      4      5      6      7      8 */
   	       0xC0A, 0xAF1, 0xF19, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
@@ -352,8 +352,8 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
       HitReadout->hits[i-1].channel = (readbuf[i] & 0x00F80000) >> 19;
       // make sure it was the enabled channel
       if (HitReadout->hits[i-1].channel != EnabledChannel)
-	printf("ERROR: Hit on channel %d, but only channel %d enabled\n",
-	       HitReadout->hits[i-1].channel, EnabledChannel);
+      	printf("ERROR: Hit on channel %d, but only channel %d enabled\n",
+      	       HitReadout->hits[i-1].channel, EnabledChannel);
       HitReadout->hits[i-1].edge = (readbuf[i] & 0x00040000) >> 18;
       HitReadout->hits[i-1].error = (readbuf[i] & 0x00020000) >> 17;
       HitReadout->hits[i-1].coarseTime = (readbuf[i] & 0x0001FFE0) >> 5;

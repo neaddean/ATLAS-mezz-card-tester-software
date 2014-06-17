@@ -9,4 +9,4 @@ set logscale y
 #set term x11 0
 plot "sweep.txt" using 1:3 with points pt 11 linecolor rgb "#C71585"
 #set term x11 1
-#plot "w_board_sweep.txt" using 1:3 with points pt 11 linecolor rgb "#0000FF"
+#plot "sweep2.txt" using 1:3 with points pt 11 linecolor rgb "#0000FF"
