@@ -29,8 +29,8 @@ MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], const char* device_na
 // open hit saving file
 void MezzTester::initFile()
 {
-  hitFile = fopen("hits.txt", "w");
-  fprintf(hitFile, "thit#\teventID\thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
+  hitFile = fopen("../../../sweeps/hits.txt", "w");
+  fprintf(hitFile, "thr\tthit#\teventID\thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
 }
 
 // close init file in the destructor
@@ -146,14 +146,18 @@ void MezzTester::printTDCHits()
     printf("Errorflags: %04X\n", HitReadout.errorflags);
   if (HitReadout.numHits == 0)
     return;
-  printf("thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
+  printf("thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\t\tetime\n");
   for (int i=0; i<HitReadout.numHits; i++)
     {
-      printf("%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
+      printf("%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\t",
 	     i, HitReadout.hits[i].channel, 
 	     HitReadout.hits[i].edge, HitReadout.hits[i].error, 
 	     HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime, 
 	     HitReadout.hits[i].hitTime);
+      if (i>0)
+	  printf("%fns\n", HitReadout.hits[i].hitTime - HitReadout.hits[i-1].hitTime);
+      else
+	printf("\n");
     } 
   if (HitReadout.errorflags != 0)
     printTDCError(HitReadout.errorflags);
@@ -165,12 +169,13 @@ void MezzTester::saveHits()
     return;
   for (int i = 0; i < HitReadout.numHits; i++)
     {
-      fprintf(hitFile, "%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
-	      savedhits, HitReadout.eventID, i, HitReadout.hits[i].channel, 
+      savedhits+=1;
+      fprintf(hitFile, "%d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
+	      2*(Board.ASDRegs[DISC1_THR]-127),savedhits, 
+	      HitReadout.eventID, i, HitReadout.hits[i].channel, 
 	      HitReadout.hits[i].edge, HitReadout.hits[i].error,
 	      HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime, 
 	      HitReadout.hits[i].hitTime);
-      savedhits+=1;
     }
   // if ((savedhits != totalhits) && shouldSaveHits)
   //   printf("ERROR: not saving all recorded hits: total: %d saved: %d\n", totalhits, savedhits);

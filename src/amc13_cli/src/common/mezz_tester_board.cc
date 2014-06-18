@@ -87,7 +87,7 @@ void MezzTesterBoard::Power(int pwr)
     {
     case ON: serial.Writeln("power_on"); break;
     case OFF: serial.Writeln("power_off"); break;
-    case RESET: Power(OFF); sleep(2); Power(ON); sleep(2); break;
+    case RESET: Power(OFF); sleep(.5); Power(ON); sleep(.5); break;
     }
 }
 
@@ -192,6 +192,9 @@ void MezzTesterBoard::UpdateInjector()
   serial.Writeln(outbuf);
 
   sprintf(outbuf, "pt %02X", HitPeriod);
+  serial.Writeln(outbuf);
+  
+  sprintf(outbuf, "sp %02X", StrobePulsePeriod);
   serial.Writeln(outbuf);
 }
 

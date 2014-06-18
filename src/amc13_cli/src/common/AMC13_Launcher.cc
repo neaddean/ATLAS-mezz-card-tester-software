@@ -1,12 +1,15 @@
 #include "hcal/amc13/AMC13_Launcher.hh"
 
-AMC13_Launcher::AMC13_Launcher()
+AMC13_Launcher::AMC13_Launcher(const char * device_name)
 {
   LoadCommandList(); //Load list
+  // open mezzTester with saving=false and channelmask=0;
+  mezzTester = new MezzTester(device_name, true, 0);
 };
 
 AMC13_Launcher::~AMC13_Launcher()
 {
+  delete mezzTester;
 }
 
 int AMC13_Launcher::EvaluateCommand(std::vector<std::string> command)

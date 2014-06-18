@@ -7,7 +7,7 @@ AMC13_CLI::AMC13_CLI()
   includeString = "include";
   
   //The prompt style
-  prompt = ">";
+  prompt = "$ ";
   
   //Filelevel (for recursion control)
   fileLevel = 0;

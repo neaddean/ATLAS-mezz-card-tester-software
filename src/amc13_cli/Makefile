@@ -31,7 +31,7 @@ LIBRARIES =     \
 		-lreadline -lcurses
 
 
-CPP_FLAGS = -O3 -Wall -Werror -Wextra -fPIC -g ${INCLUDE_PATH} -fno-strict-aliasing
+CPP_FLAGS = -O3 -Wall -Werror -fPIC -g ${INCLUDE_PATH} -fno-strict-aliasing
 LINK_LIBRARY_FLAGS = -fPIC -Wall -O3 ${LIBRARY_PATH} ${LIBRARIES}
 LINK_EXECUTABLE_FLAGS = -Wall -g -ggdb -O3 ${LIBRARY_PATH} ${LIBRARIES} 
 

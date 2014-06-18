@@ -8,10 +8,11 @@
 #include <stdlib.h>
 
 #include <stdint.h>
+#include "mezztester/mezz_tester.h"
 
 class AMC13_Launcher {
 public:
-  AMC13_Launcher();
+  AMC13_Launcher(const char * device_name);
   ~AMC13_Launcher();
 
   int EvaluateCommand(std::vector<std::string> command);
@@ -24,11 +25,9 @@ private:
 				   std::vector<uint64_t>)> List;
 
   //====================================================
-  //Add your commands here
+  //Mezzanine Board Tester Class
   //====================================================
-  // std::vector<AMC13Simple *> AMCModgule;
-  // size_t defaultAMC13;
-
+  MezzTester * mezzTester;
   //====================================================
   //Add your commands here
   //====================================================
@@ -39,6 +38,20 @@ private:
   //Add new command functions here
   int Help(std::vector<std::string>,std::vector<uint64_t>);	   
   int Quit(std::vector<std::string>,std::vector<uint64_t>);	   
-  int Echo(std::vector<std::string>,std::vector<uint64_t>);	       
+  int Echo(std::vector<std::string>,std::vector<uint64_t>);
+  int cli (std::vector<std::string>,std::vector<uint64_t>);
+  int tsweep (std::vector<std::string>,std::vector<uint64_t>);
+  int Trigger(std::vector<std::string>,std::vector<uint64_t>);
+  int jtw(std::vector<std::string>,std::vector<uint64_t>);
+  int jaw(std::vector<std::string>,std::vector<uint64_t>);
+  int jtr(std::vector<std::string>,std::vector<uint64_t>);
+  int jar(std::vector<std::string>,std::vector<uint64_t>);
+  int UpdateBoard(std::vector<std::string>,std::vector<uint64_t>);
+  int SetChannelMask(std::vector<std::string>,std::vector<uint64_t>);
+  int SetChannel(std::vector<std::string>,std::vector<uint64_t>);
+  int SetHitPeriod(std::vector<std::string>,std::vector<uint64_t>);
+  int SetStrobePulsePeriod(std::vector<std::string>,std::vector<uint64_t>);
+  int load_test(std::vector<std::string>,std::vector<uint64_t>);
+  int load_default(std::vector<std::string>,std::vector<uint64_t>);
 };
 #endif

@@ -215,7 +215,7 @@ int  SerialIO::Readln(char * buffer, int bufsize, char delim) const
 	    printf("ERROR: Buffer overflow on Readln().\n"
 		   "Size: %d\n"
 		   "----------------------\n"
-		   "***%s***\n"
+		   "%s\n"
 		   "----------------------\n", i, buffer);
 	    return i;
 	  }

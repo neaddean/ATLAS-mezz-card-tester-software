@@ -2,6 +2,7 @@
 #define MEZZ_TESTER_H
 
 #include "serial_io.h"
+#include "mezz_tester.h"
 
 #define ON 1
 #define OFF 2
@@ -99,6 +100,7 @@ typedef struct HitReadout_s
 
 class MezzTesterBoard
 {
+  friend class MezzTester;
  public:
   MezzTesterBoard(const char* device_name, int ChannelMask = 0x000000);
   MezzTesterBoard(int TDC[15], int ASD[10], int DAC[4], const char* device_name, 

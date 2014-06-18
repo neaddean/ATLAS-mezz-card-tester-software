@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
   GoodLuck.Board.SetTDCReg(COUNT_ROLLOVER, coarse_rollover);
   GoodLuck.Board.SetChannel(5);
   GoodLuck.Board.UpdateBoard();
-  for (int thresh=100; thresh<180; thresh+=2)
+  for (int thresh=60; thresh<180; thresh+=2)
     {
       GoodLuck.Board.SetASDReg(DISC1_THR, thresh);
       GoodLuck.Board.UpdateASD();
