@@ -164,7 +164,7 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 	thresh_delta = intArg[arg+1];
       else if(strArg[arg].compare("-f")==0)
 	{
-	  sprintf(file_name_buffer,"../../../sweeps/%s", strArg[arg+1].c_str());
+	  sprintf(file_name_buffer,"../../sweeps/%s", strArg[arg+1].c_str());
 	  sweep_file = fopen(file_name_buffer, "w");
 	  fprintf(sweep_file,"thr\thits\tfreq\terror\n");
 	}

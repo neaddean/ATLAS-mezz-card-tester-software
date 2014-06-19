@@ -10,12 +10,12 @@ INCLUDE_PATH =  \
 
 
 # Set your library name here
-AMC13_SOURCES = $(wildcard src/common/*.cc)
-AMC13_OBJECT_FILES = $(patsubst src/common/%.cc,obj/%.o,${AMC13_SOURCES})
+AMC13_SOURCES = $(wildcard src/*.cc)
+AMC13_OBJECT_FILES = $(patsubst src/%.cc,obj/%.o,${AMC13_SOURCES})
 
-EXECUTABLE_SOURCES = $(wildcard src/common/*.cxx)
-EXECUTABLE_OBJECT_FILES = $(patsubst src/common/%.cxx,obj/%.o,${EXECUTABLE_SOURCES})
-EXECUTABLES = $(patsubst src/common/%.cxx,bin/%,${EXECUTABLE_SOURCES})
+EXECUTABLE_SOURCES = $(wildcard src/*.cxx)
+EXECUTABLE_OBJECT_FILES = $(patsubst src/%.cxx,obj/%.o,${EXECUTABLE_SOURCES})
+EXECUTABLES = $(patsubst src/%.cxx,bin/%,${EXECUTABLE_SOURCES})
 
 LIBRARY_PATH =  
 
@@ -60,10 +60,10 @@ ${EXECUTABLES}: bin/%: obj/%.o ${EXECUTABLE_OBJECT_FILES} ${AMC13_OBJECT_FILES}
 	g++ ${LINK_EXECUTABLE_FLAGS}  $< ${AMC13_OBJECT_FILES} -o $@
 
 
-${EXECUTABLE_OBJECT_FILES}: obj/%.o : src/common/%.cxx
+${EXECUTABLE_OBJECT_FILES}: obj/%.o : src/%.cxx
 	g++ -c ${CPP_FLAGS}  $< -o $@
 
-${AMC13_OBJECT_FILES}: obj/%.o : src/common/%.cc
+${AMC13_OBJECT_FILES}: obj/%.o : src/%.cc
 	g++ -c ${CPP_FLAGS}  $< -o $@
 
 

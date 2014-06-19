@@ -29,7 +29,7 @@ MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], const char* device_na
 // open hit saving file
 void MezzTester::initFile()
 {
-  hitFile = fopen("../../../sweeps/hits.txt", "w");
+  hitFile = fopen("../../sweeps/hits.txt", "w");
   fprintf(hitFile, "thr\tthit#\teventID\thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
 }
 

@@ -4,6 +4,7 @@
 *.o
 *.obj
 /#*
+*.~
 
 # Compiled Dynamic libraries
 *.so
