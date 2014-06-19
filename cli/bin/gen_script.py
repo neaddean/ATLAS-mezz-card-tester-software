@@ -20,7 +20,8 @@ sweep_params = {"-n" : num_sweeps,      "-d" : thresh_delta, "-m" : match_window
 
 outfile = open("fullsweep", "w")
 
-#print >>outfile, "jtw 11 %d" % 0xA71
+print >>outfile, "jtw 11 %d" % 0xA71
+print >>outfile, "update"
 
 for i in range(0, 1, 3):
     mystr = ''
@@ -32,5 +33,5 @@ for i in range(0, 1, 3):
     print >>outfile, mystr
     print mystr
 
-print >>outfile, "quit"
+#print >>outfile, "quit"
 outfile.close()

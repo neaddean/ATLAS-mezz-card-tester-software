@@ -1,2 +1,2 @@
-tsweep -d 2 -s 100 -c 0 -r 3456 -m 4000 -b 3464 -t 150 -n 100 -x 4095 -p 0 -f longsweep0.txt
-quit
+jtw 11 2673
+tsweep -d 2 -s 100 -c 0 -r 3456 -m 400 -b 3464 -t 150 -n 100 -x 4095 -p 0 -f longsweep0.txt
