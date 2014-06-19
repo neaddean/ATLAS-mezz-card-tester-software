@@ -6,7 +6,14 @@ set xlabel "Threshold setting (mv)"
 set ylabel "Hit rate (hz)"
 
 set logscale y
-#set term x11 0
-plot "sweep.txt" using 1:3 with points pt 11 linecolor rgb "#C71585"
-#set term x11 1
-#plot "sweep2.txt" using 1:3 with points pt 11 linecolor rgb "#0000FF"
+
+set terminal pdf
+set output "long_sweeps.pdf"
+
+do for [i=0:23] {
+   titlebuf = sprintf("Channel #%d", i)
+   set title titlebuf
+   infile = sprintf("longsweep%d.txt", i)
+   plot infile using 1:3:4 with errorbars linecolor rgb "#C71585"
+   #plot infile using 1:3 with points pt 11 linecolor rgb "#C71585"
+}

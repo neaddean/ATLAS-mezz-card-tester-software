@@ -162,6 +162,8 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 	thresh_stop = intArg[arg+1];
       else if(strArg[arg].compare("-d")==0)
 	thresh_delta = intArg[arg+1];
+      else if(strArg[arg].compare("-p")==0)
+        channel = intArg[arg+1];
       else if(strArg[arg].compare("-f")==0)
 	{
 	  sprintf(file_name_buffer,"../../sweeps/%s", strArg[arg+1].c_str());
@@ -187,6 +189,7 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 
   printf("Channel: %d\n", channel);
 
+  int match_og = match_window;
   for (int thresh=thresh_start; thresh<thresh_stop; thresh+=thresh_delta)
     {
       mezzTester->Board.SetASDReg(DISC1_THR, thresh);
@@ -201,7 +204,26 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
   	    }
   	  mezzTester->getReadout();
   	  mezzTester->printTDCStatus();
-  	}
+	  if ((mezzTester->HitReadout.errorflags & 
+	       READOUT_FIFO_OVERFLOW_ERROR) ||
+	      (mezzTester->HitReadout.errorflags & 
+	       L1_BUFFER_OVERFLOW_ERROR))
+	    {
+	      match_window /= 2;
+	      if (match_window == 0)
+		match_window = 1;
+	      mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
+	      mezzTester->Board.UpdateTDC();
+	      printf("Match window set to %d\n", match_window);
+	      printf("Throwing out packet.\n");
+	      i -= 1;;
+	      mezzTester->totalhits =- mezzTester->HitReadout.numHits;
+	      sleep(.01);
+	      continue;
+	    }
+	  if ((mezzTester->shouldSaveHits) && (match_og == match_window))
+	    mezzTester->saveHits();
+	}
       runhits = mezzTester->getTotalHits();
       rate = (float)runhits/(.000000025*match_window*num_sweeps);
 
@@ -218,6 +240,8 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 	printf("%g\n", sqrt(runhits)/runhits*rate);
       else
 	printf("\n");
+      
+      match_window = match_og;
     }
   fclose(sweep_file);
 

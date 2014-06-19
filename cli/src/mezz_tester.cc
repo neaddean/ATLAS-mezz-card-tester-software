@@ -30,7 +30,7 @@ MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], const char* device_na
 void MezzTester::initFile()
 {
   hitFile = fopen("../../sweeps/hits.txt", "w");
-  fprintf(hitFile, "thr\tthit#\teventID\thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
+  fprintf(hitFile, "#thit\tthr\teventID\thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
 }
 
 // close init file in the destructor
@@ -58,8 +58,8 @@ int MezzTester::getReadout()
   int ret = Board.ReadFIFO(&(this->HitReadout));
   if (ret > NO_HITS)
     totalhits += HitReadout.numHits;
-  if (shouldSaveHits)
-    saveHits();
+  // if (shouldSaveHits)
+  //   saveHits();
   if (HitReadout.errorflags != 0)
     printTDCError(HitReadout.errorflags);
   return ret;
@@ -69,7 +69,9 @@ int MezzTester::getReadout()
 void MezzTester::printTDCError(int errmask)
 {
   // int errmask = TDCStatus.errorflags;
-
+  printf("-----------------------------------------------------"
+	 "---------------------------------------------------\n"
+	 "Event ID: %d\n", HitReadout.eventID);
   if(errmask & COARSE_ERROR)
     printf("TDC error: coarse counter parity error.\n");
   if(errmask & CHANNEL_SEL_ERROR)
@@ -82,7 +84,10 @@ void MezzTester::printTDCError(int errmask)
     {
       printf("TDC error: trigger matching error (state error).\n");
       printf("Global reset sent.\n");
-      Board.TDCcmd(GR);
+      Board.TDCRegs[0] = 0x800;
+      Board.UpdateTDC();
+      Board.TDCRegs[0] = 0x000;
+      Board.UpdateTDC();
     }
   if(errmask & READOUT_FIFO_PARITY_ERROR)
     printf("TDC error: readout FIFO parity error.\n");
@@ -93,11 +98,15 @@ void MezzTester::printTDCError(int errmask)
   if(errmask & JTAG_PARITY_ERROR)
     printf("TDC error: JTAG instruction parity error.\n");
   if(errmask & L1_BUFFER_OVERFLOW_ERROR)
-    printf("TDC error: L1 buffer overflow error.\n");
+    {
+      printf("TDC error: L1 buffer overflow error.\n");
+    }
   if(errmask & TRIGGER_FIFO_OVERFLOW_ERROR)
     printf("TDC error: trigger fifo overflow error.\n");
   if(errmask & READOUT_FIFO_OVERFLOW_ERROR)
-    printf("TDC error: readout fifo overflow error.\n");
+    {
+      printf("TDC error: readout fifo overflow error.\n");
+    }
   if(errmask & HIT_ERROR)
     printf("TDC error: hit error.\n");
 }
@@ -170,8 +179,8 @@ void MezzTester::saveHits()
   for (int i = 0; i < HitReadout.numHits; i++)
     {
       savedhits+=1;
-      fprintf(hitFile, "%d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
-	      2*(Board.ASDRegs[DISC1_THR]-127),savedhits, 
+      fprintf(hitFile, "%d\t%d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
+	      savedhits, 2*(Board.ASDRegs[DISC1_THR]-127),
 	      HitReadout.eventID, i, HitReadout.hits[i].channel, 
 	      HitReadout.hits[i].edge, HitReadout.hits[i].error,
 	      HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime, 

@@ -1,1 +1,2 @@
-tsweep -d 2 -s 85 -c 0 -r 2000 -m 1000 -b 2008 -t 165 -n 200 -x 3500 -p 13 -f longsweep13.txt
+tsweep -d 2 -s 100 -c 0 -r 3456 -m 4000 -b 3464 -t 150 -n 100 -x 4095 -p 0 -f longsweep0.txt
+quit

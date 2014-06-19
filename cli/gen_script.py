@@ -2,12 +2,12 @@
 
 
 #default values
-num_sweeps = 200
-match_window = 1000
-reject_offset = 2000
-bunch_offset = 2008
+num_sweeps = 50
+match_window = 400
+reject_offset = 3024
+bunch_offset = 3064
 coarse_offset = 0
-coarse_rollover = 3500
+coarse_rollover = 4095
 thresh_start = 85
 thresh_stop = 165
 thresh_delta = 2
@@ -20,14 +20,13 @@ sweep_params = {"-n" : num_sweeps,      "-d" : thresh_delta, "-m" : match_window
 
 outfile = open("./bin/fullsweep", "w")
 
-#for i in range(0, 24):
-i = 13
-mystr = ''
-mystr += "tsweep "
-for flag, arg in sweep_params.iteritems():
-    mystr += flag + " " + str(arg) + " "
-mystr += "-p " + str(i) + " "
-mystr += "-f " + filename + str(i) + ".txt"
-print >>outfile, mystr
+for i in range(0, 5):
+    mystr = ''
+    mystr += "tsweep "
+    for flag, arg in sweep_params.iteritems():
+        mystr += flag + " " + str(arg) + " "
+    mystr += "-p " + str(i) + " "
+    mystr += "-f " + filename + str(i) + ".txt"
+    print >>outfile, mystr
 
 outfile.close()

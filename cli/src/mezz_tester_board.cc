@@ -7,7 +7,7 @@
 // This is the default constructor
 MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
 {
-  int ASD[] = {0x00, 0x00, 108,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
+  int ASD[] = {0x00, 0x00, 108,   1,   2,   6,   5,   7, 0x00, 0x00, 0x01};
   /*              0     1    2    3    4    5    6    7     8     9     A  */
   int TDC[] = {0x000,        0,    39,    31,  3424,     0,  3464,     0,  3563, 
   // /*               0      1      2      3      4      5      6      7      8 */
@@ -87,7 +87,7 @@ void MezzTesterBoard::Power(int pwr)
     {
     case ON: serial.Writeln("power_on"); break;
     case OFF: serial.Writeln("power_off"); break;
-    case RESET: Power(OFF); sleep(.5); Power(ON); sleep(.5); break;
+    case RESET: Power(OFF); sleep(1); Power(ON); sleep(2); break;
     }
 }
 

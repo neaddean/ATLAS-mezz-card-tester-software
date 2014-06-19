@@ -31,7 +31,7 @@ void SerialIO::Reset(int level)
       oFlags = 0;
       iFlags = 0;
       cFlags = CS8 | CLOCAL | CREAD;
-      baudRate = B1152000;
+      baudRate = B2000000;
       
       device.clear();  
     }
