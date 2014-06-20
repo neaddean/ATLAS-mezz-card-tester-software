@@ -3,7 +3,7 @@
 
 #default values
 num_sweeps = 25
-match_window = 3999
+match_window = 399
 reject_offset = 458
 bunch_offset = 464
 coarse_offset = 0

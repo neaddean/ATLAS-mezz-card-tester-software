@@ -61,17 +61,19 @@ int MezzTester::getReadout()
   // if (shouldSaveHits)
   //   saveHits();
   if (HitReadout.errorflags != 0)
-    printTDCError(HitReadout.errorflags);
+    printTDCError(HitReadout.errorflags, 
+		  READOUT_FIFO_OVERFLOW_ERROR | L1_BUFFER_OVERFLOW_ERROR);
   return ret;
 }
 
 
-void MezzTester::printTDCError(int errmask)
+void MezzTester::printTDCError(int errmask, int mask)
 {
-  // int errmask = TDCStatus.errorflags;
-  printf("-----------------------------------------------------"
-	 "---------------------------------------------------\n"
-	 "Event ID: %d\n", HitReadout.eventID);
+  errmask &= ~mask;
+  if (errmask != 0)
+    printf("-----------------------------------------------------"
+	   "---------------------------------------------------\n"
+	   "Event ID: %d\n", HitReadout.eventID);
   if(errmask & COARSE_ERROR)
     printf("TDC error: coarse counter parity error.\n");
   if(errmask & CHANNEL_SEL_ERROR)

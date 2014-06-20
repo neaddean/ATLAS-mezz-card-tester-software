@@ -4,6 +4,8 @@
 #include "serial_io.h"
 #include "mezz_tester.h"
 
+#define TDC_CLK 2.5e-8
+
 #define ON 1
 #define OFF 2
 #define RESET 3
