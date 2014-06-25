@@ -18,7 +18,7 @@ MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
   /*               0      1      2      3      4      5      6      7      8 */
   //int TDC[] = {0x000,     0,  1008,  1000,  3024,     0,  3064,     0,  4095,
   // /*               0      1      2      3      4      5      6      7      8 */
-  	       0xC0A, 0xA79, 0xF19, 0x1FF, 0x000, 0x000};		
+  	       0xF0A, 0xAF1, 0xF19, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
   int DAC[] = {0xFFF, 0xFFF, 0xFFF, 0xFFF};
 
@@ -87,7 +87,7 @@ void MezzTesterBoard::Power(int pwr)
     {
     case ON: serial.Writeln("power_on"); break;
     case OFF: serial.Writeln("power_off"); break;
-    case RESET: Power(OFF); sleep(1); Power(ON); sleep(2); break;
+    case RESET: Power(OFF); sleep(1); Power(ON); sleep(1.2); break;
     }
 }
 
@@ -97,6 +97,10 @@ void MezzTesterBoard::Init()
   serial.Writeln(" ");
   serial.Writeln("reset");
   serial.Writeln("gpio");
+  // TDCRegs[0] = 0x80B;
+  // UpdateTDC();
+  // TDCRegs[0] = 0x00B;
+  // UpdateTDC();
   TDCcmd(GR);
   TDCcmd(BCR);
   TDCcmd(ECR);
@@ -257,7 +261,7 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
   // check that packet began with header
   if ((readbuf[0] & 0xA0000000) != 0xA0000000)
     {
-    printf("ERROR: packet did not begin with header.\n");
+      //printf("ERROR: packet did not begin with header.\n");
       for (int i=0; i<readsize; i++)
 	printf("\t%d\t%08X\n", i, readbuf[i]);
     }
@@ -281,7 +285,7 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
       if (errortemp != 0)
 	printf("\tE\t%08X\n", errortemp);
       // allow time for user interaction
-      sleep(20);
+      sleep(10);
     }
   
   // check that packet ended with trailer

@@ -1,4 +1,3 @@
 jtw 10 2801
 update
-tsweep -d 1 -s 100 -c 0 -r 458 -m 3999 -b 464 -t 150 -n 25 -x 4095 -p 0 -f longsweep0.txt
-quit
+tsweep -d 1 -s 100 -c 0 -r 2456 -m 31 -b 2464 -t 150 -n 50 -x 2563 -p 0 -f longsweep0.txt

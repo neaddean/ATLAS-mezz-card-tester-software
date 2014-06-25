@@ -30,7 +30,7 @@ MezzTester::MezzTester(int * TDC, int ASD[10], int DAC[4], const char* device_na
 void MezzTester::initFile()
 {
   hitFile = fopen("../../sweeps/hits.txt", "w");
-  fprintf(hitFile, "#thit\tthr\teventID\thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\n");
+  fprintf(hitFile, "#thit\tthr\teventID\thit#\tchannel\tedge\terror\tcoarse\tfine\ttime\tetime\n");
 }
 
 // close init file in the destructor
@@ -61,8 +61,7 @@ int MezzTester::getReadout()
   // if (shouldSaveHits)
   //   saveHits();
   if (HitReadout.errorflags != 0)
-    printTDCError(HitReadout.errorflags, 
-		  READOUT_FIFO_OVERFLOW_ERROR | L1_BUFFER_OVERFLOW_ERROR);
+    printTDCError(HitReadout.errorflags, READOUT_FIFO_OVERFLOW_ERROR);
   return ret;
 }
 
@@ -86,9 +85,10 @@ void MezzTester::printTDCError(int errmask, int mask)
     {
       printf("TDC error: trigger matching error (state error).\n");
       printf("Global reset sent.\n");
-      Board.TDCRegs[0] = 0x800;
+      int temp = Board.TDCRegs[0];
+      Board.TDCRegs[0] |= 0x800;
       Board.UpdateTDC();
-      Board.TDCRegs[0] = 0x000;
+      Board.TDCRegs[0] = temp;
       Board.UpdateTDC();
     }
   if(errmask & READOUT_FIFO_PARITY_ERROR)
@@ -100,15 +100,11 @@ void MezzTester::printTDCError(int errmask, int mask)
   if(errmask & JTAG_PARITY_ERROR)
     printf("TDC error: JTAG instruction parity error.\n");
   if(errmask & L1_BUFFER_OVERFLOW_ERROR)
-    {
       printf("TDC error: L1 buffer overflow error.\n");
-    }
   if(errmask & TRIGGER_FIFO_OVERFLOW_ERROR)
     printf("TDC error: trigger fifo overflow error.\n");
   if(errmask & READOUT_FIFO_OVERFLOW_ERROR)
-    {
       printf("TDC error: readout fifo overflow error.\n");
-    }
   if(errmask & HIT_ERROR)
     printf("TDC error: hit error.\n");
 }
@@ -181,12 +177,16 @@ void MezzTester::saveHits()
   for (int i = 0; i < HitReadout.numHits; i++)
     {
       savedhits+=1;
-      fprintf(hitFile, "%d\t%d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\n",
+      fprintf(hitFile, "%d\t%d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%0d\t%fns\t",
 	      savedhits, 2*(Board.ASDRegs[DISC1_THR]-127),
 	      HitReadout.eventID, i, HitReadout.hits[i].channel, 
 	      HitReadout.hits[i].edge, HitReadout.hits[i].error,
 	      HitReadout.hits[i].coarseTime, HitReadout.hits[i].fineTime, 
 	      HitReadout.hits[i].hitTime);
+      if (i>0)
+	fprintf(hitFile, "%fns\n", HitReadout.hits[i].hitTime - HitReadout.hits[i-1].hitTime);
+      else
+	fprintf(hitFile, "\n");
     }
   // if ((savedhits != totalhits) && shouldSaveHits)
   //   printf("ERROR: not saving all recorded hits: total: %d saved: %d\n", totalhits, savedhits);

@@ -32,7 +32,6 @@ void AMC13_Launcher::LoadCommandList()
   List["update"] = &AMC13_Launcher::UpdateBoard;
   List["load_test"] = &AMC13_Launcher::load_test;
   List["load_default"] = &AMC13_Launcher::load_default;
- 
 }
 
 
@@ -109,6 +108,9 @@ void printSweepHelp()
 	 "*required\n");
 }
 
+#define FOR
+
+#ifdef FOR
 int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 			   std::vector<uint64_t> intArg)
 {
@@ -168,7 +170,6 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 	{
 	  sprintf(file_name_buffer,"../../sweeps/%s", strArg[arg+1].c_str());
 	  sweep_file = fopen(file_name_buffer, "w");
-	  fprintf(sweep_file,"thr\thits\tfreq\twindow\terror\n");
 	}
     }
 	      
@@ -177,20 +178,36 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
       printf("ERROR: must give a file destination\n");
       return 0;
     }
+
+  fprintf(sweep_file,
+	  "# Number of sweeps:%d\n"
+	  "# Match window:%d\n"
+	  "# Search window:%d\n"
+	  "# Reject offset:%d\n"
+	  "# Bunch offset:%d\n"
+	  "# Coarse offset:%d\n"
+	  "# Coarse rollover:%d\n"
+	  "# Threshold: [%d, %d, %d]\n"
+	  "# Channel:%d\n",
+	  num_sweeps, match_window, match_window+8, reject_offset,
+	  bunch_offset, coarse_offset, coarse_rollover,
+	  thresh_start, thresh_stop, thresh_delta, channel);
   
-  mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
+  fprintf(sweep_file,"thr\thits\tfreq\twindow\terror\n");
+  
+mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
   mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
   mezzTester->Board.SetTDCReg(REJECT_OFFSET, reject_offset);
   mezzTester->Board.SetTDCReg(BUNCH_OFFSET, bunch_offset);
   mezzTester->Board.SetTDCReg(COARSE_OFFSET, coarse_offset);
   mezzTester->Board.SetTDCReg(COUNT_ROLLOVER, coarse_rollover);
-  mezzTester->Board.SetChannel(channel);
+   mezzTester->Board.SetChannel(channel);
   mezzTester->Board.UpdateBoard();
 
   printf("Channel: %d\n", channel);
 
   int match_og = match_window;
-  
+  int i_max;
   for (int thresh=thresh_start; thresh<thresh_stop; thresh+=thresh_delta)
     {
       mezzTester->Board.SetASDReg(DISC1_THR, thresh);
@@ -199,24 +216,26 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
       runhits = 0;
 
       match_window = match_og;
+      i_max = num_sweeps;
+      
       mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
       mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
       mezzTester->Board.UpdateTDC();      
 
-      for (int i=0; i<num_sweeps;)
+      for (int i=0; i<i_max;)
   	{
   	  while(mezzTester->Board.FIFOFlags() == FIFO_EMPTY)
   	    {
   	      mezzTester->Board.TDCcmd(TRIGGER);
   	    }
   	  mezzTester->getReadout();
-  	  mezzTester->printTDCStatus();
 	  if ((mezzTester->HitReadout.errorflags & 
 	       READOUT_FIFO_OVERFLOW_ERROR) ||
 	      (mezzTester->HitReadout.errorflags & 
 	       L1_BUFFER_OVERFLOW_ERROR))
 	    {
-	      mezzTester->printTDCError(mezzTester->HitReadout.errorflags);
+	      mezzTester->printTDCError(mezzTester->HitReadout.errorflags,
+					READOUT_FIFO_OVERFLOW_ERROR);
 	      match_window /= 2;
 	      if (match_window == 0)
 		mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window);
@@ -237,6 +256,7 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 	      // else 
 	      printf("Match window set to %d\n", match_window);
 
+	      // i_max *= 2;
 	      i = 0;
 	      runhits = 0;
 	      sleep(.001);
@@ -270,169 +290,185 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
   return 0;
 }
 
-// int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
-// 			   std::vector<uint64_t> intArg)
-// {
-//   int num_sweeps = 100;
-//   int match_window = 1000;
-//   int reject_offset = 2000;
-//   int bunch_offset = 2008;
-//   int coarse_offset = 0;
-//   int coarse_rollover = 3500;
-//   int thresh_start = 90;
-//   int thresh_stop = 140;
-//   int thresh_delta = 2;
-//   int channel = 0;
-//   char file_name_buffer[100];
-//   FILE* sweep_file = NULL;
-//   int runhits;
-//   float rate;
+#elif WHILE
+int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
+			   std::vector<uint64_t> intArg)
+{
+  int num_sweeps = 100;
+  int match_window = 1000;
+  int reject_offset = 2000;
+  int bunch_offset = 2008;
+  int coarse_offset = 0;
+  int coarse_rollover = 3500;
+  int thresh_start = 90;
+  int thresh_stop = 140;
+  int thresh_delta = 2;
+  int channel = 0;
+  char file_name_buffer[100];
+  FILE* sweep_file = NULL;
+  int runhits;
+  float rate;
 
-//   // can only check for "-h" if there are actually arguments
-//   // so this is split into two checks
-//   if ((strArg.size() == 0) ||
-//       (strArg.size()%2==1))
-//     {
-//       printSweepHelp();
-//       return 0;
-//     }
+  // can only check for "-h" if there are actually arguments
+  // so this is split into two checks
+  if ((strArg.size() == 0) ||
+      (strArg.size()%2==1))
+    {
+      printSweepHelp();
+      return 0;
+    }
   
-//   if (strArg[0].compare("-h")==0)
-//     {
-//       printSweepHelp();
-//       return 0;
-//     }
+  if (strArg[0].compare("-h")==0)
+    {
+      printSweepHelp();
+      return 0;
+    }
 
-//   for (size_t arg=0; arg < strArg.size(); arg+=2)
-//     {
-//       if(strArg[arg].compare("-n")==0)
-// 	num_sweeps = intArg[arg+1];
-//       else if(strArg[arg].compare("-m")==0)
-// 	match_window = intArg[arg+1];
-//       else if(strArg[arg].compare("-r")==0)
-// 	reject_offset = intArg[arg+1];
-//       else if(strArg[arg].compare("-b")==0)
-// 	bunch_offset = intArg[arg+1];
-//       else if(strArg[arg].compare("-c")==0)
-// 	coarse_offset = intArg[arg+1];
-//       else if(strArg[arg].compare("-x")==0)
-// 	coarse_rollover = intArg[arg+1];
-//       else if(strArg[arg].compare("-s")==0)
-// 	thresh_start = intArg[arg+1];
-//       else if(strArg[arg].compare("-t")==0)
-// 	thresh_stop = intArg[arg+1];
-//       else if(strArg[arg].compare("-d")==0)
-// 	thresh_delta = intArg[arg+1];
-//       else if(strArg[arg].compare("-p")==0)
-//         channel = intArg[arg+1];
-//       else if(strArg[arg].compare("-f")==0)
-// 	{
-// 	  sprintf(file_name_buffer,"../../sweeps/%s", strArg[arg+1].c_str());
-// 	  sweep_file = fopen(file_name_buffer, "w");
-// 	  fprintf(sweep_file,"thr\thits\tfreq\twindow\terror\n");
-// 	}
-//     }
+  for (size_t arg=0; arg < strArg.size(); arg+=2)
+    {
+      if(strArg[arg].compare("-n")==0)
+	num_sweeps = intArg[arg+1];
+      else if(strArg[arg].compare("-m")==0)
+	match_window = intArg[arg+1];
+      else if(strArg[arg].compare("-r")==0)
+	reject_offset = intArg[arg+1];
+      else if(strArg[arg].compare("-b")==0)
+	bunch_offset = intArg[arg+1];
+      else if(strArg[arg].compare("-c")==0)
+	coarse_offset = intArg[arg+1];
+      else if(strArg[arg].compare("-x")==0)
+	coarse_rollover = intArg[arg+1];
+      else if(strArg[arg].compare("-s")==0)
+	thresh_start = intArg[arg+1];
+      else if(strArg[arg].compare("-t")==0)
+	thresh_stop = intArg[arg+1];
+      else if(strArg[arg].compare("-d")==0)
+	thresh_delta = intArg[arg+1];
+      else if(strArg[arg].compare("-p")==0)
+        channel = intArg[arg+1];
+      else if(strArg[arg].compare("-f")==0)
+	{
+	  sprintf(file_name_buffer,"../../sweeps/%s", strArg[arg+1].c_str());
+	  sweep_file = fopen(file_name_buffer, "w");
+	}
+    }
 	      
-//   if (sweep_file == NULL)
-//     {
-//       printf("ERROR: must give a file destination\n");
-//       return 0;
-//     }
+  if (sweep_file == NULL)
+    {
+      printf("ERROR: must give a file destination\n");
+      return 0;
+    }
+
+  fprintf(sweep_file,
+	  "# Number of sweeps:%d\n"
+	  "# Match window:%d\n"
+	  "# Search window:%d\n"
+	  "# Reject offset:%d\n"
+	  "# Bunch offset:%d\n"
+	  "# Coarse offset:%d\n"
+	  "# Coarse rollover:%d\n"
+	  "# Threshold: [%d, %d, %d]\n"
+	  "# Channel:%d\n",
+	  num_sweeps, match_window, match_window+8, reject_offset,
+	  bunch_offset, coarse_offset, coarse_rollover,
+	  thresh_start, thresh_stop, thresh_delta, channel);
   
-//   mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
-//   mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
-//   mezzTester->Board.SetTDCReg(REJECT_OFFSET, reject_offset);
-//   mezzTester->Board.SetTDCReg(BUNCH_OFFSET, bunch_offset);
-//   mezzTester->Board.SetTDCReg(COARSE_OFFSET, coarse_offset);
-//   mezzTester->Board.SetTDCReg(COUNT_ROLLOVER, coarse_rollover);
-//   mezzTester->Board.SetChannel(channel);
-//   mezzTester->Board.UpdateBoard();
+	  fprintf(sweep_file,"thr\thits\tfreq\twindow\terror\n");
 
-//   printf("Channel: %d\n", channel);
+  mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
+  mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
+  mezzTester->Board.SetTDCReg(REJECT_OFFSET, reject_offset);
+  mezzTester->Board.SetTDCReg(BUNCH_OFFSET, bunch_offset);
+  mezzTester->Board.SetTDCReg(COARSE_OFFSET, coarse_offset);
+  mezzTester->Board.SetTDCReg(COUNT_ROLLOVER, coarse_rollover);
+  mezzTester->Board.SetChannel(channel);
+  mezzTester->Board.UpdateBoard();
 
-//   int match_og = match_window;
-//   float window_time;
-//   float full_window = TDC_CLK*match_window*num_sweeps;
-//   for (int thresh=thresh_start; thresh<thresh_stop; thresh+=thresh_delta)
-//     {
-//       mezzTester->Board.SetASDReg(DISC1_THR, thresh);
-//       mezzTester->Board.UpdateASD();
-//       mezzTester->resetTotalHits();
-//       window_time = 0;
-//       match_window = match_og;
-//       mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
-//       mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
-//       mezzTester->Board.UpdateTDC();      
-//       //for (int i=0; i<num_sweeps; i++)
-//       while (window_time < full_window)
-//   	{
-//   	  while(mezzTester->Board.FIFOFlags() == FIFO_EMPTY)
-//   	    {
-//   	      //mezzTester->Board.TDCcmd(BCR);
-//   	      mezzTester->Board.TDCcmd(TRIGGER);
-//   	    }
-//   	  mezzTester->getReadout();
-//   	  mezzTester->printTDCStatus();
-// 	  if ((mezzTester->HitReadout.errorflags & 
-// 	       READOUT_FIFO_OVERFLOW_ERROR) ||
-// 	      (mezzTester->HitReadout.errorflags & 
-// 	       L1_BUFFER_OVERFLOW_ERROR))
-// 	    {
-// 	      if (match_window < 10)
-// 		{
-// 		  printf("ERROR: match window <10\n");
-// 		  printf("Match window set to %d\n", match_window);
-// 		  break;
-// 		  //	  printf("index: %d\n", i);
-// 		}
-// 	      match_window /= 2;
-// 	      if (match_window == 0)
-// 	      	match_window = 1;
-// 	      mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
-// 	      mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
-// 	      mezzTester->Board.UpdateTDC();
-// 	      //mezzTester->Board.serial.Writeln("jtr 2"
-// 	      // printf("Match window set to %d\n", match_window);
-// 	      // printf("Throwing out packet.\n");
-// 	      // printf("total hits before sub:%d\n", mezzTester->totalhits);
-// 	      //i -= 1;;
-// 	      mezzTester->totalhits -= mezzTester->HitReadout.numHits;
-// 	      // printf("total hits after sub:%d\n", mezzTester->totalhits);
-// 	      sleep(.001);
-// 	      continue;
-// 	    }
-// 	  window_time += (float)match_window*TDC_CLK;
-// 	  // if (match_window != match_og)
-// 	  //   printf("new window_time =%f\n"
-// 	  // 	   "match window=%d\n"
-// 	  // 	   "total hits:%d\n", 
-// 	  // 	   window_time, match_window, mezzTester->totalhits);
-// 	  mezzTester->saveHits();
-// 	}
-//       runhits = mezzTester->getTotalHits();
-//       rate = (float)runhits/(window_time);
+  printf("Channel: %d\n", channel);
 
-//       fprintf(sweep_file, "%0d\t%0d\t%g\t%d\t", 2*(thresh-127), runhits, 
-// 	      rate, match_window);
+  int match_og = match_window;
+  float window_time;
+  float full_window = TDC_CLK*match_window*num_sweeps;
+  for (int thresh=thresh_start; thresh<thresh_stop; thresh+=thresh_delta)
+    {
+      mezzTester->Board.SetASDReg(DISC1_THR, thresh);
+      mezzTester->Board.UpdateASD();
+      mezzTester->resetTotalHits();
+      window_time = 0;
+      match_window = match_og;
+      mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
+      mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
+      mezzTester->Board.UpdateTDC();      
+      //for (int i=0; i<num_sweeps; i++)
+      while (window_time < full_window)
+  	{
+  	  while(mezzTester->Board.FIFOFlags() == FIFO_EMPTY)
+  	    {
+  	      //mezzTester->Board.TDCcmd(BCR);
+  	      mezzTester->Board.TDCcmd(TRIGGER);
+  	    }
+  	  mezzTester->getReadout();
+	  if ((mezzTester->HitReadout.errorflags & 
+	       READOUT_FIFO_OVERFLOW_ERROR) ||
+	      (mezzTester->HitReadout.errorflags & 
+	       L1_BUFFER_OVERFLOW_ERROR))
+	    {
+	      if (match_window < 10)
+		{
+		  printf("ERROR: match window <10\n");
+		  printf("Match window set to %d\n", match_window);
+		  break;
+		  //	  printf("index: %d\n", i);
+		}
+	      match_window /= 2;
+	      if (match_window == 0)
+	      	match_window = 1;
+	      mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
+	      mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
+	      mezzTester->Board.UpdateTDC();
+	      //mezzTester->Board.serial.Writeln("jtr 2"
+	      // printf("Match window set to %d\n", match_window);
+	      // printf("Throwing out packet.\n");
+	      // printf("total hits before sub:%d\n", mezzTester->totalhits);
+	      //i -= 1;;
+	      mezzTester->totalhits -= mezzTester->HitReadout.numHits;
+	      // printf("total hits after sub:%d\n", mezzTester->totalhits);
+	      sleep(.001);
+	      continue;
+	    }
+	  window_time += (float)match_window*TDC_CLK;
+	  // if (match_window != match_og)
+	  //   printf("new window_time =%f\n"
+	  // 	   "match window=%d\n"
+	  // 	   "total hits:%d\n", 
+	  // 	   window_time, match_window, mezzTester->totalhits);
+	  mezzTester->saveHits();
+	}
+      runhits = mezzTester->getTotalHits();
+      rate = (float)runhits/(window_time);
 
-//       if(runhits != 0)
-// 	fprintf(sweep_file,"%g\n", sqrt(runhits)/runhits*rate);
-//       else
-// 	fprintf(sweep_file,"0\n");
+      fprintf(sweep_file, "%0d\t%0d\t%g\t%d\t", 2*(thresh-127), runhits, 
+	      rate, match_window);
 
-//       printf("%0d\t%0d\t%g\t%d\t", 2*(thresh-127), runhits, 
-// 	     rate, match_window);
+      if(runhits != 0)
+	fprintf(sweep_file,"%g\n", sqrt(runhits)/runhits*rate);
+      else
+	fprintf(sweep_file,"0\n");
 
-//       if(runhits != 0)
-// 	printf("%g\n", sqrt(runhits)/runhits*rate);
-//       else
-// 	printf("0\n");
-//       printf("window time: %f\n", window_time);
-//     }
-//   fclose(sweep_file);
+      printf("%0d\t%0d\t%g\t%d\t", 2*(thresh-127), runhits, 
+	     rate, match_window);
 
-//   return 0;
-// }
+      if(runhits != 0)
+	printf("%g\n", sqrt(runhits)/runhits*rate);
+      else
+	printf("0\n");
+      printf("window time: %f\n", window_time);
+    }
+  fclose(sweep_file);
+
+  return 0;
+}
+#endif
 
 int AMC13_Launcher::Trigger(std::vector<std::string> strArg,
 			    std::vector<uint64_t> intArg)
@@ -460,6 +496,7 @@ int AMC13_Launcher::Trigger(std::vector<std::string> strArg,
 	     "------------------------------------\n");
       mezzTester->printTDCHits();
       mezzTester->printTDCStatus();
+      mezzTester->saveHits();
     }
   return 0; 
 }
@@ -573,13 +610,13 @@ int AMC13_Launcher::load_test(std::vector<std::string> strArg,
   mezzTester->Board.SetASDReg(CHIP_MODE, 1);
   mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0xFF);
   mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0x07);
-  mezzTester->Board.SetASDReg(DISC1_THR, 80);
+  mezzTester->Board.SetASDReg(DISC1_THR, 40);
 
   mezzTester->Board.SetChannelMask(0xFFFFFF);
   mezzTester->Board.SetChannel(0);
-  mezzTester->Board.UpdateBoard();
-
   mezzTester->Board.SetStrobePulsePeriod(01);
+
+  mezzTester->Board.UpdateBoard();
 
   return 0;
 }
