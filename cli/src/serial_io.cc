@@ -1,4 +1,4 @@
-#include "mezztester/serial_io.h"
+#include "serial_io.h"
 #include <errno.h>
 
 SerialIO::SerialIO()

@@ -1,3 +1,0 @@
-jtw 10 2801
-update
-tsweep -d 1 -s 100 -c 0 -r 2456 -m 31 -b 2464 -t 150 -n 50 -x 2563 -p 0 -f longsweep0.txt

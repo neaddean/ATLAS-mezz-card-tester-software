@@ -1,5 +1,5 @@
 //#include <CLI.hh>
-#include "hcal/amc13/AMC13_CLI.hh"
+#include "AMC13_CLI.hh"
 
 AMC13_CLI::AMC13_CLI()
 {

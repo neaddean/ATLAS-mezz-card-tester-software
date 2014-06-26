@@ -1,5 +1,3 @@
-#! /bin/python2
-
 
 #default values
 num_sweeps = 50

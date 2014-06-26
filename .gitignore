@@ -21,3 +21,6 @@
 *.exe
 *.out
 *.app
+
+# Dependency lists
+/cli/.dep/*

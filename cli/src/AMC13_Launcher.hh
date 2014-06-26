@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include <stdint.h>
-#include "mezztester/mezz_tester.h"
+#include "mezz_tester.h"
 
 class AMC13_Launcher {
 public:
@@ -52,6 +52,8 @@ private:
   int SetHitPeriod(std::vector<std::string>,std::vector<uint64_t>);
   int SetStrobePulsePeriod(std::vector<std::string>,std::vector<uint64_t>);
   int load_test(std::vector<std::string>,std::vector<uint64_t>);
-  int load_default(std::vector<std::string>,std::vector<uint64_t>);
+  int load_full(std::vector<std::string>,std::vector<uint64_t>);
+  int dump(std::vector<std::string>,std::vector<uint64_t>);
+  int mw(std::vector<std::string>,std::vector<uint64_t>);
 };
 #endif

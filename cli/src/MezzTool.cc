@@ -2,8 +2,8 @@
 #include <vector>
 #include <iostream>
 
-#include "hcal/amc13/AMC13_Launcher.hh"
-#include "hcal/amc13/AMC13_CLI.hh"
+#include "AMC13_Launcher.hh"
+#include "AMC13_CLI.hh"
 #include "tclap/CmdLine.h"
 
 

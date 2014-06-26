@@ -22,6 +22,7 @@ class MezzTester
   void resetTotalHits() {totalhits = 0;}
   HitReadout_s * retReadout() {return &(HitReadout);} 
   void saveHits();
+  void SetWindow(int match_window);
 
   MezzTesterBoard Board;
   TDCStatus_s TDCStatus;

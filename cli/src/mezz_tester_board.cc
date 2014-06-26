@@ -1,5 +1,5 @@
 #include <iostream>
-#include "mezztester/mezz_tester.h"
+#include "mezz_tester.h"
 #include <cstring>
 #include <stdlib.h>
 #include <errno.h>
@@ -18,7 +18,7 @@ MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
   /*               0      1      2      3      4      5      6      7      8 */
   //int TDC[] = {0x000,     0,  1008,  1000,  3024,     0,  3064,     0,  4095,
   // /*               0      1      2      3      4      5      6      7      8 */
-  	       0xF0A, 0xAF1, 0xF19, 0x1FF, 0x000, 0x000};		
+  	       0xC0A, 0xAF1, 0xF19, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
   int DAC[] = {0xFFF, 0xFFF, 0xFFF, 0xFFF};
 

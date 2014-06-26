@@ -1,4 +1,4 @@
-#include "hcal/amc13/AMC13_Launcher.hh"
+#include "AMC13_Launcher.hh"
 
 AMC13_Launcher::AMC13_Launcher(const char * device_name)
 {

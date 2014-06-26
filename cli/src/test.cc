@@ -4,9 +4,9 @@
 #include <signal.h>
 #include <errno.h>
 
-#include "mezztester/serial_io.h"
+#include "serial_io.h"
 
-#include "mezztester/mezz_tester.h"
+#include "mezz_tester.h"
 
 //==============================================================                      
 //Signal handler and loop control                            

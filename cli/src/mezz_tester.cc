@@ -1,5 +1,5 @@
 #include <iostream>
-#include "mezztester/mezz_tester.h"
+#include "mezz_tester.h"
 #include <stdlib.h>
 
 
@@ -190,4 +190,13 @@ void MezzTester::saveHits()
     }
   // if ((savedhits != totalhits) && shouldSaveHits)
   //   printf("ERROR: not saving all recorded hits: total: %d saved: %d\n", totalhits, savedhits);
+}
+
+void MezzTester::SetWindow(int match_window)
+{
+  Board.SetTDCReg(MATCH_WINDOW, match_window);
+  Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
+  Board.SetTDCReg(BUNCH_OFFSET, 4095-match_window);
+  Board.SetTDCReg(REJECT_OFFSET, 4095-match_window-8);
+  Board.SetTDCReg(COUNT_ROLLOVER, 4095);
 }

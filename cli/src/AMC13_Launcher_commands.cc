@@ -1,4 +1,4 @@
-#include "hcal/amc13/AMC13_Launcher.hh"
+#include "AMC13_Launcher.hh"
 #include <cmath>
 
 void AMC13_Launcher::LoadCommandList()
@@ -31,7 +31,9 @@ void AMC13_Launcher::LoadCommandList()
   // update board
   List["update"] = &AMC13_Launcher::UpdateBoard;
   List["load_test"] = &AMC13_Launcher::load_test;
-  List["load_default"] = &AMC13_Launcher::load_default;
+  List["load_full"] = &AMC13_Launcher::load_full;
+  List["dump"] = &AMC13_Launcher::dump;
+  List["mw"] = &AMC13_Launcher::mw;
 }
 
 
@@ -234,8 +236,6 @@ mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
 	      (mezzTester->HitReadout.errorflags & 
 	       L1_BUFFER_OVERFLOW_ERROR))
 	    {
-	      mezzTester->printTDCError(mezzTester->HitReadout.errorflags,
-					READOUT_FIFO_OVERFLOW_ERROR);
 	      match_window /= 2;
 	      if (match_window == 0)
 		mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window);
@@ -255,7 +255,8 @@ mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
 	      // 	match_window = 399;
 	      // else 
 	      printf("Match window set to %d\n", match_window);
-
+	      if (match_window == 0)
+		  break;
 	      // i_max *= 2;
 	      i = 0;
 	      runhits = 0;
@@ -614,27 +615,53 @@ int AMC13_Launcher::load_test(std::vector<std::string> strArg,
 
   mezzTester->Board.SetChannelMask(0xFFFFFF);
   mezzTester->Board.SetChannel(0);
-  mezzTester->Board.SetStrobePulsePeriod(01);
+  mezzTester->Board.SetStrobePulsePeriod(19);
 
   mezzTester->Board.UpdateBoard();
 
   return 0;
 }
 
-int AMC13_Launcher::load_default(std::vector<std::string> strArg,
+int AMC13_Launcher::load_full(std::vector<std::string> strArg,
 				 std::vector<uint64_t> intArg)
 {
-  int ASD[] = {0x00, 0x00, 108,   1,   2,   6,   5,   7, 0x00, 0x00, 0x00};
-  /*              0     1    2    3    4    5    6    7     8     9     A  */
-  int TDC[] = {0x000,        0,    39,    31,  3424,     0,  3464,     0,  3563, 
-	       /*               0      1      2      3      4      5      6      7      8 */
+  int TDC[] = {0x000,     0,  4007,  3999,     2,     0,    10,     0,  4095, 
+	       /*  0      1      2      3      4      5      6      7      8 */
   	       0xC0A, 0xAF1, 0xF19, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
   int i = 0;
   for (i = 0; i<TDC_REG_NUM; i++)
     mezzTester->Board.SetTDCReg(i, TDC[i]);
-  for (i = 0; i<ASD_REG_NUM; i++)
-    mezzTester->Board.SetASDReg(i, ASD[i]);
+  mezzTester->Board.SetChannel(mezzTester->Board.getChannel());
+
+  mezzTester->Board.UpdateBoard();
 
   return 0;
 }
+
+int AMC13_Launcher::dump(std::vector<std::string> strArg,
+			 std::vector<uint64_t> intArg)
+{
+  int i;
+  printf("TDC:\n");
+  for (i = 0; i<9; i++)
+    printf("\t%d:\t%d\n", i, mezzTester->Board.GetTDCReg(i));
+  for (i = 9; i<15; i++)
+    printf("\t%d:\t%03X\n", i, mezzTester->Board.GetTDCReg(i));
+  if (strArg.size() > 0)
+    {
+      printf("ASD:\n");
+      for (i = 0; i<ASD_REG_NUM; i++)
+	printf("\t%d:\t%d\n", i, mezzTester->Board.GetASDReg(i));
+    }
+  return 0;
+}
+
+int AMC13_Launcher::mw(std::vector<std::string> strArg,
+			 std::vector<uint64_t> intArg)
+{
+  if (intArg.size() > 0)
+    mezzTester->SetWindow(intArg[0]);
+  return 0;
+}
+
