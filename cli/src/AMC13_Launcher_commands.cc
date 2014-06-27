@@ -34,6 +34,8 @@ void AMC13_Launcher::LoadCommandList()
   List["load_full"] = &AMC13_Launcher::load_full;
   List["dump"] = &AMC13_Launcher::dump;
   List["mw"] = &AMC13_Launcher::mw;
+  List["bo"] = &AMC13_Launcher::bo;
+  List["treset"] = &AMC13_Launcher::treset;
 }
 
 
@@ -580,28 +582,32 @@ int AMC13_Launcher::UpdateBoard(std::vector<std::string> strArg,
 int AMC13_Launcher::SetChannelMask(std::vector<std::string> strArg,
 				   std::vector<uint64_t> intArg)
 {
-  mezzTester->Board.SetChannelMask(intArg[0]);
+  if (intArg.size() > 0)
+    mezzTester->Board.SetChannelMask(intArg[0]);
   return 0;
 }
 
 int AMC13_Launcher::SetChannel(std::vector<std::string> strArg,
 			       std::vector<uint64_t> intArg)
 {
-  mezzTester->Board.SetChannel(intArg[0]);
+  if (intArg.size() > 0)
+    mezzTester->Board.SetChannel(intArg[0]);
   return 0;
 }
 
 int AMC13_Launcher::SetHitPeriod(std::vector<std::string> strArg,
 				 std::vector<uint64_t> intArg)
 {
-  mezzTester->Board.SetHitPeriod(intArg[0]);
+  if (intArg.size() > 0)
+    mezzTester->Board.SetHitPeriod(intArg[0]);
   return 0;
 }
 
 int AMC13_Launcher::SetStrobePulsePeriod(std::vector<std::string> strArg,
 					 std::vector<uint64_t> intArg)
 {
-  mezzTester->Board.SetStrobePulsePeriod(intArg[0]);
+  if (intArg.size() > 0)
+    mezzTester->Board.SetStrobePulsePeriod(intArg[0]);
   return 0;
 }
 
@@ -665,3 +671,22 @@ int AMC13_Launcher::mw(std::vector<std::string> strArg,
   return 0;
 }
 
+int AMC13_Launcher::bo(std::vector<std::string> strArg,
+		       std::vector<uint64_t> intArg)
+{
+  if (intArg.size() > 0)  
+    {
+      mezzTester->Board.SetTDCReg(BUNCH_OFFSET, intArg[0]);
+      mezzTester->Board.SetTDCReg(REJECT_OFFSET, intArg[0] - 8);
+    }
+  return 0;
+}
+
+int AMC13_Launcher::treset(std::vector<std::string> strArg,
+		       std::vector<uint64_t> intArg)
+{
+  mezzTester->Board.serial.Writeln("tc 2");
+  mezzTester->Board.serial.Writeln("tc 1");
+  mezzTester->Board.serial.Writeln("tc 3");
+  return 0;
+}

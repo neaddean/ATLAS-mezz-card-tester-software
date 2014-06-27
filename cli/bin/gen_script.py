@@ -1,10 +1,11 @@
+#! /bin/python2
 
 #default values
 num_sweeps = 50
-match_window = 31
-reject_offset = 2456
-bunch_offset = 2464
-coarse_rollover = 2563
+match_window = 199
+reject_offset = 3456
+bunch_offset = 3464
+coarse_rollover = 3900
 coarse_offset = 0
 thresh_start = 100
 thresh_stop = 150

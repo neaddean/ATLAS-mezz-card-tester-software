@@ -55,5 +55,7 @@ private:
   int load_full(std::vector<std::string>,std::vector<uint64_t>);
   int dump(std::vector<std::string>,std::vector<uint64_t>);
   int mw(std::vector<std::string>,std::vector<uint64_t>);
+  int bo(std::vector<std::string>,std::vector<uint64_t>);
+  int treset(std::vector<std::string>,std::vector<uint64_t>);
 };
 #endif
