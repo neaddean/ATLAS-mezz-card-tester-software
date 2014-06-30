@@ -1,3 +1,9 @@
-jtw 10 2801
-update
-tsweep -d 1 -s 100 -c 0 -r 3456 -m 199 -b 3464 -t 150 -n 50 -x 3900 -p 0 -f longsweep0.txt
+tsweep -m 1999 -d 1 -n 50 -s 100 -t 150 -p 0 -f longsweep0
+tsweep -m 1999 -d 1 -n 50 -s 100 -t 150 -p 3 -f longsweep3
+tsweep -m 1999 -d 1 -n 50 -s 100 -t 150 -p 6 -f longsweep6
+tsweep -m 1999 -d 1 -n 50 -s 100 -t 150 -p 9 -f longsweep9
+tsweep -m 1999 -d 1 -n 50 -s 100 -t 150 -p 12 -f longsweep12
+tsweep -m 1999 -d 1 -n 50 -s 100 -t 150 -p 15 -f longsweep15
+tsweep -m 1999 -d 1 -n 50 -s 100 -t 150 -p 18 -f longsweep18
+tsweep -m 1999 -d 1 -n 50 -s 100 -t 150 -p 21 -f longsweep21
+quit

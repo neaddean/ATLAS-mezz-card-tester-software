@@ -16,13 +16,14 @@ class MezzTester
   int  TDCRunning();
   void printTDCError(int errmask, int mask = 0);
   void printTDCStatus();
-  void printTDCHits();
-  int  getReadout();
+  void printTDCHits(int maskflags = 0);
+  int  getReadout(int maskflags = 0);
   int  getTotalHits() {return totalhits;}
   void resetTotalHits() {totalhits = 0;}
   HitReadout_s * retReadout() {return &(HitReadout);} 
   void saveHits();
   void SetWindow(int match_window);
+  void ResetTDC();
 
   MezzTesterBoard Board;
   TDCStatus_s TDCStatus;

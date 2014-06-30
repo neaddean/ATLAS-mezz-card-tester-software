@@ -13,7 +13,7 @@ set output "long_sweeps.pdf"
 do for [i=0:23:3] {
    titlebuf = sprintf("Channel #%d", i)
    set title titlebuf
-   infile = sprintf("longsweep%d.txt", i)
+   infile = sprintf("longsweep%d", i)
    plot infile using 1:3:5 with errorbars linecolor rgb "#C71585"
    #plot infile using 1:3 with points pt 11 linecolor rgb "#C71585"
 }

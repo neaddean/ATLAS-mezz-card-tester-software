@@ -22,6 +22,7 @@
 #define BCR 1
 #define GR 2
 #define ECR 3
+#define TRIGGER_W_PULSE 4
 
 #define NO_READOUT -2
 #define NO_HITS -1
@@ -134,6 +135,7 @@ class MezzTesterBoard
   void UpdateBoard();
   void UpdateTDC() {WriteReg(TDCRegs, TDC_REG_NUM, "jtw");serial.Writeln("jtu");}
   void UpdateASD() {WriteReg(ASDRegs, ASD_REG_NUM, "jaw");serial.Writeln("jau");}
+  void UpdateDAC() {WriteReg(DACRegs, DAC_REG_NUM, "d");}
   void UpdateInjector();
 
   void TDCcmd(int cmd);

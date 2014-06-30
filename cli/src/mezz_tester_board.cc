@@ -184,6 +184,7 @@ void MezzTesterBoard::UpdateBoard()
 {
   UpdateTDC();
   UpdateASD();
+  UpdateDAC();
   UpdateInjector();
 }
 
@@ -195,7 +196,7 @@ void MezzTesterBoard::UpdateInjector()
   sprintf(outbuf, "p %06X", ChannelMask);
   serial.Writeln(outbuf);
 
-  sprintf(outbuf, "pt %02X", HitPeriod);
+  sprintf(outbuf, "tp %02X", HitPeriod);
   serial.Writeln(outbuf);
   
   sprintf(outbuf, "sp %02X", StrobePulsePeriod);
@@ -211,6 +212,7 @@ void MezzTesterBoard::TDCcmd(int cmd)
     case BCR: serial.Writeln("tc 1"); break;
     case GR: serial.Writeln("tc 2"); break;
     case ECR: serial.Writeln("tc 3"); break;
+    case TRIGGER_W_PULSE: serial.Writeln("tc 4"); break;
     }
   //sleep(.0001);
 }

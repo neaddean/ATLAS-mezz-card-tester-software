@@ -4,8 +4,10 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include <stdint.h>
 #include "mezz_tester.h"
@@ -20,10 +22,18 @@ public:
 private:
   //A mapping between command string and function to call
   //The called function returns an int and takes an AMC13 class, a vector of argument strings and a vector of uint64_t conversions of those strings
-  std::map<std::string,
-	   int (AMC13_Launcher::*)(std::vector<std::string>,
-				   std::vector<uint64_t>)> List;
 
+  void AddCommand(std::string name, 
+		  int (AMC13_Launcher::*)(std::vector<std::string>,std::vector<uint64_t>),
+		  std::string help, 
+		  std::string (AMC13_Launcher::*)(std::string,int)=NULL);
+  void AddCommandAlias( std::string alias, std::string existingCommand );
+  int FindCommand(std::string command);
+
+  std::vector<std::string> commandName;
+  std::vector<int (AMC13_Launcher::*)(std::vector<std::string>,std::vector<uint64_t>)> commandPtr;
+  std::vector<std::string> commandHelp;
+  std::vector<std::string (AMC13_Launcher::*)(std::string,int)> commandAutoComplete;
   //====================================================
   //Mezzanine Board Tester Class
   //====================================================
@@ -39,8 +49,9 @@ private:
   int Help(std::vector<std::string>,std::vector<uint64_t>);	   
   int Quit(std::vector<std::string>,std::vector<uint64_t>);	   
   int Echo(std::vector<std::string>,std::vector<uint64_t>);
-  int cli (std::vector<std::string>,std::vector<uint64_t>);
-  int tsweep (std::vector<std::string>,std::vector<uint64_t>);
+  int cli(std::vector<std::string>,std::vector<uint64_t>);
+  int tsweep_man(std::vector<std::string>,std::vector<uint64_t>);
+  int tsweep(std::vector<std::string>,std::vector<uint64_t>);
   int Trigger(std::vector<std::string>,std::vector<uint64_t>);
   int jtw(std::vector<std::string>,std::vector<uint64_t>);
   int jaw(std::vector<std::string>,std::vector<uint64_t>);
@@ -52,7 +63,6 @@ private:
   int SetHitPeriod(std::vector<std::string>,std::vector<uint64_t>);
   int SetStrobePulsePeriod(std::vector<std::string>,std::vector<uint64_t>);
   int load_test(std::vector<std::string>,std::vector<uint64_t>);
-  int load_full(std::vector<std::string>,std::vector<uint64_t>);
   int dump(std::vector<std::string>,std::vector<uint64_t>);
   int mw(std::vector<std::string>,std::vector<uint64_t>);
   int bo(std::vector<std::string>,std::vector<uint64_t>);

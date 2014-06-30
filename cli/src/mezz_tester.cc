@@ -53,7 +53,7 @@ int MezzTester::TDCRunning()
   return TDCStatus.running;
 } 
 
-int MezzTester::getReadout()
+int MezzTester::getReadout(int maskflags)
 {
   int ret = Board.ReadFIFO(&(this->HitReadout));
   if (ret > NO_HITS)
@@ -61,7 +61,7 @@ int MezzTester::getReadout()
   // if (shouldSaveHits)
   //   saveHits();
   if (HitReadout.errorflags != 0)
-    printTDCError(HitReadout.errorflags, READOUT_FIFO_OVERFLOW_ERROR);
+    printTDCError(HitReadout.errorflags, maskflags);
   return ret;
 }
 
@@ -69,10 +69,11 @@ int MezzTester::getReadout()
 void MezzTester::printTDCError(int errmask, int mask)
 {
   errmask &= ~mask;
-  if (errmask != 0)
-    printf("-----------------------------------------------------"
-	   "---------------------------------------------------\n"
-	   "Event ID: %d\n", HitReadout.eventID);
+  if (errmask == 0)
+    return;
+  printf("-----------------------------------------------------"
+	 "---------------------------------------------------\n"
+	 "Event ID: %d\n", HitReadout.eventID);
   if(errmask & COARSE_ERROR)
     printf("TDC error: coarse counter parity error.\n");
   if(errmask & CHANNEL_SEL_ERROR)
@@ -138,13 +139,11 @@ void MezzTester::printTDCStatus()
   //printf("tfifo occupancy: %d.\n", TDCStatus.tfifo_occ);
   //printf("rfifo occupancy: %d.\n", TDCStatus.rfifo_occ);
   //printf("coarse counter: %d.\n", TDCStatus.coarse_counter);
-  // if (TDCStatus.running != 0)
-  //   printf("ERROR: TDC RUNNING\n");
   if (TDCStatus.errorflags != 0)
       printTDCError(TDCStatus.errorflags);
 }
 
-void MezzTester::printTDCHits()
+void MezzTester::printTDCHits(int maskflags)
 {
   printf("Number of hits: %0d\n", HitReadout.numHits);
   printf("Event ID: %0d\n", HitReadout.eventID);
@@ -167,7 +166,7 @@ void MezzTester::printTDCHits()
 	printf("\n");
     } 
   if (HitReadout.errorflags != 0)
-    printTDCError(HitReadout.errorflags);
+    printTDCError(HitReadout.errorflags, maskflags);
 }
 
 void MezzTester::saveHits()
@@ -199,4 +198,11 @@ void MezzTester::SetWindow(int match_window)
   Board.SetTDCReg(BUNCH_OFFSET, 4095-match_window);
   Board.SetTDCReg(REJECT_OFFSET, 4095-match_window-8);
   Board.SetTDCReg(COUNT_ROLLOVER, 4095);
+}
+
+void MezzTester::ResetTDC()
+{
+  Board.serial.Writeln("tc 2");
+  Board.serial.Writeln("tc 1");
+  Board.serial.Writeln("tc 3");
 }
