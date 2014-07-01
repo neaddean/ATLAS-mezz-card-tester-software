@@ -1,7 +1,7 @@
 #! /bin/python2
 
 #default values
-num_sweeps = 50
+num_sweeps = 20
 match_window = 1999
 thresh_start = 100
 thresh_stop = 150
@@ -17,7 +17,7 @@ thresh_delta = 1
 # thresh_stop = 150
 # thresh_delta = 1
 
-filename = "longsweep"
+filename = "436/longsweep"
 
 sweep_params = {"-n" : num_sweeps,      "-d" : thresh_delta, "-m" : match_window,
                 "-s" : thresh_start,    "-t" : thresh_stop}
@@ -28,7 +28,7 @@ outfile = open("fullsweep", "w")
 # print >>outfile, "sp 0"
 #print >>outfile, "update"
 
-for i in range(0, 23, 3):
+for i in range(0, 24, 1):
     mystr = ''
     mystr += "tsweep "
     for flag, arg in sweep_params.iteritems():

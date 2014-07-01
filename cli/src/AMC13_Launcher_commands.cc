@@ -31,6 +31,8 @@ void AMC13_Launcher::LoadCommandList()
   AddCommand("bo",&AMC13_Launcher::bo,"set bunch offset");
   AddCommand("treset",&AMC13_Launcher::treset,
 	     "send TDC global reset followed by event and bunch resets");
+  AddCommand("d",&AMC13_Launcher::d,"set all dacs");
+  AddCommand("load_inject",&AMC13_Launcher::load_inject,"load settings for external injector");
 }
 
 int AMC13_Launcher::Quit(std::vector<std::string>,
@@ -180,7 +182,7 @@ int AMC13_Launcher::tsweep_man(std::vector<std::string> strArg,
 	  bunch_offset, coarse_offset, coarse_rollover,
 	  thresh_start, thresh_stop, thresh_delta, channel);
   
-  fprintf(sweep_file,"thr\thits\tfreq\twindow\terror\n");
+  fprintf(sweep_file,"#thr\thits\tfreq\twindow\terror\n");
   
   mezzTester->Board.SetTDCReg(MATCH_WINDOW, match_window);
   mezzTester->Board.SetTDCReg(SEARCH_WINDOW, match_window+8);
@@ -350,7 +352,7 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 	    thresh_start, thresh_stop, thresh_delta, channel);
   
   if (recording)
-    fprintf(sweep_file,"thr\thits\tfreq\twindow\terror\n");
+    fprintf(sweep_file,"#thr\thits\tfreq\twindow\terror\n");
   
   mezzTester->SetWindow(match_window);
   mezzTester->Board.SetChannel(channel);
@@ -433,6 +435,15 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 
   return 0;
 }
+
+int AMC13_Launcher::dacsweep(std::vector<std::string> strArg,
+			   std::vector<uint64_t> intArg)
+{
+
+
+  return 0;
+}
+
 
 int AMC13_Launcher::Trigger(std::vector<std::string> strArg,
 			    std::vector<uint64_t> intArg)
@@ -629,6 +640,27 @@ int AMC13_Launcher::bo(std::vector<std::string> strArg,
 int AMC13_Launcher::treset(std::vector<std::string> strArg,
 			   std::vector<uint64_t> intArg)
 {
+  mezzTester->ResetTDC();
+  return 0;
+}
+
+int AMC13_Launcher::d(std::vector<std::string> strArg,
+			   std::vector<uint64_t> intArg)
+{
+  if (intArg.size() > 0)
+    mezzTester->Board.SetAllDAC(intArg[0]);
+  return 0;
+}
+
+int AMC13_Launcher::load_inject(std::vector<std::string> strArg,
+			   std::vector<uint64_t> intArg)
+{
+  mezzTester->Board.SetHitPeriod(100);
+  mezzTester->SetWindow(1999);
+  mezzTester->Board.SetChannel(0);
+  mezzTester->Board.SetChannelMask(1);
+  mezzTester->Board.SetASDReg(DISC1_THR, 70);
+  mezzTester->Board.UpdateBoard();
   mezzTester->ResetTDC();
   return 0;
 }

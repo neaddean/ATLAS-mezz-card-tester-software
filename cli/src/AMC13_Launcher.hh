@@ -67,5 +67,7 @@ private:
   int mw(std::vector<std::string>,std::vector<uint64_t>);
   int bo(std::vector<std::string>,std::vector<uint64_t>);
   int treset(std::vector<std::string>,std::vector<uint64_t>);
+  int d(std::vector<std::string>,std::vector<uint64_t>);
+  int load_inject(std::vector<std::string>,std::vector<uint64_t>);
 };
 #endif
