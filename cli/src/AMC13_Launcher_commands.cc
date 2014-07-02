@@ -33,6 +33,7 @@ void AMC13_Launcher::LoadCommandList()
 	     "send TDC global reset followed by event and bunch resets");
   AddCommand("d",&AMC13_Launcher::d,"set all dacs");
   AddCommand("load_inject",&AMC13_Launcher::load_inject,"load settings for external injector");
+  AddCommand("dac_sweep",&AMC13_Launcher::dac_sweep,"sweep threshold and dac");
 }
 
 int AMC13_Launcher::Quit(std::vector<std::string>,
@@ -391,7 +392,8 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 	    {
 	      if (match_window == 0)
 		{
-		  printf("Error: match window = 0");
+		  printf("Error: match window = 0\n");
+		  sleep(3);
 		  break;
 		}
 	      match_window /= 2;
@@ -404,7 +406,7 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 	      i = 0;
 	      runhits = 0;
 	      sleep(.001);
-	      continue;
+	      break;
 	    }	 
 	  runhits += mezzTester->HitReadout.numHits;
 	  mezzTester->saveHits();
@@ -436,11 +438,118 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
   return 0;
 }
 
-int AMC13_Launcher::dacsweep(std::vector<std::string> strArg,
-			   std::vector<uint64_t> intArg)
+int AMC13_Launcher::dac_sweep(std::vector<std::string> strArg,
+			      std::vector<uint64_t> intArg)
 {
+  char file_name_buffer[100];
+  sprintf(file_name_buffer, "../../sweeps/dac.txt");
+  int num_sweeps = 50;
+  int match_window = 1999;
+  int thresh = 180;
+  int thresh_delta = 1;
+  int thresh_stop = 255;
+  int dac = 0;
+  int dac_delta = 50;
+  int channel = 0;
+  int channelmask = 1;
+  int hit_period = 100;
+  
+  FILE * dacfile;
 
+  if ((strArg.size()%2==1) && (strArg.size() > 2))
+    {
+      printf("Error: unmatched arguments\n");
+      return 0;
+    }
 
+  for (size_t arg=0; arg < strArg.size(); arg+=2)
+    {
+      if (strArg[arg].compare("-h")==0) {
+	printf("usage (default):\n"
+	       "-h\tdisplays this message\n"
+	       "-n\tnumber of empty triggers required (50)\n"
+	       "-i\thit delay (100)\n"
+	       "-p\tchannel mask (1)\n"
+	       "-c\tchannel (0)\n"
+	       "-m\tmatch window (1999)\n"
+	       "-t\tthreshold initial (180)\n"
+	       "-s\tthreshold step (1)\n"
+	       "-d\tdac initial (0)\n"
+	       "-x\tdac step (50)\n"
+	       "-f\tsave file in sweep folder(dac.txt)\n");
+	return 0;
+      }
+      else if(strArg[arg].compare("-n")==0)
+	num_sweeps = intArg[arg+1];
+      else if(strArg[arg].compare("-i")==0)
+	hit_period = intArg[arg+1];
+      else if(strArg[arg].compare("-m")==0)
+	match_window = intArg[arg+1];
+      else if(strArg[arg].compare("-t")==0)
+	thresh = intArg[arg+1];
+      else if(strArg[arg].compare("-s")==0)
+	thresh_delta = intArg[arg+1];
+      else if(strArg[arg].compare("-e")==0)
+	thresh_stop = intArg[arg+1];
+      else if(strArg[arg].compare("-d")==0)
+	dac = intArg[arg+1];
+      else if(strArg[arg].compare("-x")==0)
+	dac_delta = intArg[arg+1];
+      else if(strArg[arg].compare("-p")==0)
+        channelmask = intArg[arg+1];
+      else if(strArg[arg].compare("-c")==0)
+	channel = intArg[arg+1];
+      else if(strArg[arg].compare("-f")==0)
+	sprintf(file_name_buffer, "../../sweeps/%s",strArg[arg+1].c_str());
+    }
+  
+  dacfile = fopen(file_name_buffer, "w");
+  fprintf(dacfile, "#thresh\tdac\n");
+  printf("thresh\tdac\n");
+
+  mezzTester->Board.SetHitPeriod(hit_period);
+  mezzTester->SetWindow(match_window);
+  mezzTester->Board.SetChannel(channel);
+  mezzTester->Board.SetChannelMask(channelmask);
+
+  mezzTester->Board.UpdateBoard();
+  mezzTester->ResetTDC();
+
+  int i;
+  while(thresh < thresh_stop)
+    {
+      mezzTester->Board.SetAllDAC(dac);
+      mezzTester->Board.UpdateDAC();
+      i = 0;
+      while (i < num_sweeps)
+	{
+	  mezzTester->Board.SetASDReg(DISC1_THR, thresh);
+	  mezzTester->Board.UpdateASD();
+
+	  while(mezzTester->Board.FIFOFlags() == FIFO_EMPTY)
+	    mezzTester->Board.TDCcmd(TRIGGER_W_PULSE);
+	  if (mezzTester->getReadout() > NO_HITS)
+	    {
+	      thresh += thresh_delta;
+	      if (thresh >255)
+		thresh = 255;
+	      i=0;
+	      continue;
+	    }
+
+	  i++;
+	}
+      fprintf(dacfile, "%d\t%d\n", 2*(thresh-127), dac);
+      printf("%d\t%d\n", thresh, dac);
+      dac += dac_delta;
+      if (dac > 4095)
+	{
+	  printf("Error: dac = %d, value to high\n", dac);
+	  break;
+	}
+    }
+
+  fclose(dacfile);
   return 0;
 }
 
@@ -614,6 +723,12 @@ int AMC13_Launcher::dump(std::vector<std::string> strArg,
       printf("ASD:\n");
       for (i = 0; i<ASD_REG_NUM; i++)
 	printf("\t%d:\t%d\n", i, mezzTester->Board.GetASDReg(i));
+      printf("DAC:%d\n"
+	     "HP :%d\n"
+	     "SP :%d\n",
+	     mezzTester->Board.GetDAC(0),
+	     mezzTester->Board.GetHitPeriod(),
+	     mezzTester->Board.GetStrobePulsePeriod());
     }
   return 0;
 }
@@ -645,7 +760,7 @@ int AMC13_Launcher::treset(std::vector<std::string> strArg,
 }
 
 int AMC13_Launcher::d(std::vector<std::string> strArg,
-			   std::vector<uint64_t> intArg)
+		      std::vector<uint64_t> intArg)
 {
   if (intArg.size() > 0)
     mezzTester->Board.SetAllDAC(intArg[0]);
@@ -653,13 +768,13 @@ int AMC13_Launcher::d(std::vector<std::string> strArg,
 }
 
 int AMC13_Launcher::load_inject(std::vector<std::string> strArg,
-			   std::vector<uint64_t> intArg)
+				std::vector<uint64_t> intArg)
 {
   mezzTester->Board.SetHitPeriod(100);
   mezzTester->SetWindow(1999);
   mezzTester->Board.SetChannel(0);
   mezzTester->Board.SetChannelMask(1);
-  mezzTester->Board.SetASDReg(DISC1_THR, 70);
+  mezzTester->Board.SetASDReg(DISC1_THR, 170);
   mezzTester->Board.UpdateBoard();
   mezzTester->ResetTDC();
   return 0;

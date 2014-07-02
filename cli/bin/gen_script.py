@@ -1,7 +1,7 @@
 #! /bin/python2
 
 #default values
-num_sweeps = 20
+num_sweeps = 50
 match_window = 1999
 thresh_start = 100
 thresh_stop = 150
