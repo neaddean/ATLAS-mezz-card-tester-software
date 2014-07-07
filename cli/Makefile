@@ -1,7 +1,7 @@
 #############################################################
 #Compiling stuff
 #############################################################
-CXXFLAGS := -O3 -Wall -fPIC -g -fno-strict-aliasing
+CXXFLAGS := -O3 -Wall -Werror -fPIC -g -fno-strict-aliasing
 
 LDFLAGS := -Wall -g -ggdb -O3
 

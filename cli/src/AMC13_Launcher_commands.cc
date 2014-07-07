@@ -26,7 +26,7 @@ void AMC13_Launcher::LoadCommandList()
   AddCommand("update",&AMC13_Launcher::UpdateBoard,"flush settings to board");
   AddCommand("load_test",&AMC13_Launcher::load_test,"load asd strobe test settings");
   AddCommand("dump",&AMC13_Launcher::dump,
-	     "display current (local) TDC registers, give (any) argument for ASD");
+	     "display current (local) TDC registers, give any argument for other settings");
   AddCommand("mw",&AMC13_Launcher::mw,"set match window");
   AddCommand("bo",&AMC13_Launcher::bo,"set bunch offset");
   AddCommand("treset",&AMC13_Launcher::treset,
@@ -34,6 +34,8 @@ void AMC13_Launcher::LoadCommandList()
   AddCommand("d",&AMC13_Launcher::d,"set all dacs");
   AddCommand("load_inject",&AMC13_Launcher::load_inject,"load settings for external injector");
   AddCommand("dac_sweep",&AMC13_Launcher::dac_sweep,"sweep threshold and dac");
+  AddCommand("jtag_test",&AMC13_Launcher::jtag_test,"perform jtag tests, run with any"
+	     " argument for verbose");
 }
 
 int AMC13_Launcher::Quit(std::vector<std::string>,
@@ -779,3 +781,34 @@ int AMC13_Launcher::load_inject(std::vector<std::string> strArg,
   mezzTester->ResetTDC();
   return 0;
 }
+
+int AMC13_Launcher::jtag_test(std::vector<std::string> strArg,
+			      std::vector<uint64_t> intArg)
+{
+  bool verbose = false;
+  if (intArg.size() > 0)
+    verbose = true;
+
+  if (mezzTester->Board.TDC_JTAG_test(verbose))
+    printf("TDC JTAG test passed\n");
+  else 
+    printf("TDC JTAG test FAILED\n");
+
+  if (mezzTester->Board.TDC_ID_test(verbose))
+    printf("TDC ID test passed\n");
+  else 
+    printf("TDC ID test FAILED\n");
+
+  if (mezzTester->Board.ASD_JTAG_test(verbose))
+    printf("ASD JTAG test passed\n");
+  else 
+    printf("ASD JTAG test FAILED\n");
+
+  if (mezzTester->Board.ASD_TDC_test(verbose))
+    printf("ASD TDC connectivity test passed\n");
+  else 
+    printf("ASD JTAG connectivity FAILED\n");
+
+  return 0;
+}
+

@@ -70,5 +70,6 @@ private:
   int d(std::vector<std::string>,std::vector<uint64_t>);
   int load_inject(std::vector<std::string>,std::vector<uint64_t>);
   int dac_sweep(std::vector<std::string>,std::vector<uint64_t>);
+  int jtag_test(std::vector<std::string>,std::vector<uint64_t>);
 };
 #endif

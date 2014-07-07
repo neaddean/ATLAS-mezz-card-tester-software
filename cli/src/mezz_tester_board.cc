@@ -37,7 +37,7 @@ MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
 
   serial.SetDevice(device_name);
   if(!serial.Open())
-    printf("ERROR: cannot opening device\n"); 
+    printf("ERROR: cannot open device\n"); 
 
   BoardReset();
  
@@ -45,8 +45,8 @@ MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
 }
 
 // This constructor takes the registers as parameters to override the default settings
-MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], const char* device_name, 
-		       int ChannelMask)
+MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], const char* device_name, 		
+        int ChannelMask)
 {
   int i;
   for (i = 0; i<15; i++)
@@ -64,7 +64,7 @@ MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], const char*
 
   serial.SetDevice(device_name);
   if(!serial.Open())
-    printf("ERROR: cannot opening device\n"); 
+    printf("ERROR: cannot open device\n"); 
  
   BoardReset();
   
@@ -97,10 +97,6 @@ void MezzTesterBoard::Init()
   serial.Writeln(" ");
   serial.Writeln("reset");
   serial.Writeln("gpio");
-  // TDCRegs[0] = 0x80B;
-  // UpdateTDC();
-  // TDCRegs[0] = 0x00B;
-  // UpdateTDC();
   TDCcmd(GR);
   TDCcmd(BCR);
   TDCcmd(ECR);
@@ -112,6 +108,9 @@ void MezzTesterBoard::BoardReset()
 {
   Power(RESET);
   Init();
+  // reset jtag state
+  serial.Writeln("jd 0000");
+  serial.Writeln("jm ffff");
   UpdateBoard();
 }
 
@@ -371,9 +370,7 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
       HitReadout->hits[i-1].hitTime = (HitReadout->hits[i-1].coarseTime*32 +
 				       HitReadout->hits[i-1].fineTime)*.78125;
     }
-
   return 1;
-
 }
 
 int MezzTesterBoard::FIFOFlags()
@@ -391,7 +388,6 @@ int MezzTesterBoard::FIFOFlags()
    
   printf("ERROR: Fifo flags in invalid state, buffer:%s\n", buffer);
   return FIFO_INVALID;
-
 }
 
 void MezzTesterBoard::ResetFIFO()
@@ -428,4 +424,217 @@ void MezzTesterBoard::SetChannel(int set_channel)
       TDCRegs[14] = (1 << (set_channel - 12));
     }
   UpdateBoard();
+}
+
+
+bool MezzTesterBoard::TDC_JTAG_test(bool verbose)
+{
+  char inbuf[32];
+  // enter test-logic-reset
+  serial.Writeln("jd 0000");
+  serial.Writeln("jm ffff");
+  // enter shit-IR and write many 0's
+  serial.Writeln("jm 0006");
+  // write 1's
+  serial.Writeln("jd ffff");
+  serial.Writeln("jm 0000", false);
+  //read back result
+  serial.Readln(inbuf,32);
+  if (verbose)
+    printf("TDC ir-reg : %s\n", inbuf);
+  // enter test-logic-reset state 
+  serial.Writeln("jm ffff");
+  int i;  
+  for (i = 0; i <32; i++)
+    {
+      if (inbuf[i]==' ')
+	continue;
+      else if (inbuf[i]=='1')
+	break;
+    }
+  // we expect "0000 0111 ...." to be read back
+  if (i == 6)
+    return true;
+  // else failed
+  if (!verbose)  
+    printf("TDC ID: %s\n", inbuf);
+  return false;
+}
+
+bool MezzTesterBoard::TDC_ID_test(bool verbose)
+{
+  const char * TDC_ID = "1000 1100 0000 1010 0001 1101 0001 1100";
+  char inbuf[64];
+  // enter test-logic-reset
+  serial.Writeln("jd 0000");
+  serial.Writeln("jm ffff");
+  // get ID
+  serial.Writeln("jd 0220");
+  serial.Writeln("jm 2606");
+  serial.Writeln("jd 00000000");
+  serial.Writeln("jm 00000000", false);
+  //read back result
+  serial.Readln(inbuf,64);
+  // enter test-logic-reset
+  serial.Writeln("jm ffff");
+  if(verbose)
+    printf("TDC ID: %s\n", inbuf);
+  if (strncmp(inbuf, TDC_ID, 39)==0)
+    return true;
+  // else failed
+  if (!verbose)
+    printf("TDC ID: %s\n", inbuf);
+  return false;
+}
+
+bool MezzTesterBoard::ASD_JTAG_test(bool verbose)
+{
+  int i;
+  char asd_buf[256];
+  memset(asd_buf, '\0', 256);
+  char in_buf[64];
+  int asd_length = 0;
+  // enter test-logic-reset
+  serial.Writeln("jd 0000");
+  serial.Writeln("jm ffff");
+  // asd access
+  serial.Writeln("jd 0120");
+  serial.Writeln("jm 2606");
+  // write a bunch of 0's
+  serial.Writeln("jd 00000000");
+  for (i=0; i<6; i++)
+    serial.Writeln("jm 00000000");
+  // write 1's
+  serial.Writeln("jd ffffffff");
+  for(i=0; i<6; i++)
+    {
+      serial.Writeln("jm 00000000", false);
+      serial.Readln(in_buf, 64);
+      strcat(asd_buf, in_buf);
+    }
+  // enter test-logic-reset
+  serial.Writeln("jm ffff");
+  // recall ASD registers
+  UpdateASD();
+  for(i=0; i<256; i++)
+    {
+      if (asd_buf[i] == '0')
+	asd_length++;
+      else if (asd_buf[i] == '1')
+	break;
+    }
+  if (verbose)
+    {
+      printf("ASD length is %d\n", asd_length);
+      puts(asd_buf);
+    }
+  if (asd_length == 160)
+    return true;
+  // else failed
+  if (!verbose)
+    {
+      printf("ASD length is %d\n", asd_length);
+      puts(asd_buf);
+    }
+  return false;
+}
+
+bool MezzTesterBoard::ASD_TDC_test(bool verbose)
+{
+  int og_chanel_lower = GetASDReg(CHANNEL_LOWER);
+  int og_chanel_upper = GetASDReg(CHANNEL_UPPER);
+  const char * one_zero = "101010101010101010101010";
+  const char * zero_one = "010101010101010101010101";
+  char asd_buf[64];
+  char inbuf[64];
+  bool failed = false;
+  int asd_index;
+  // set asd outputs to '1010...'
+  SetASDReg(CHANNEL_LOWER, 0xCC);
+  SetASDReg(CHANNEL_UPPER, 0xCC);
+  UpdateASD();
+  // enter test-logic-reset
+  serial.Writeln("jd 0000");
+  serial.Writeln("jm ffff");
+  // issue sample instruction
+  serial.Writeln("jd 0240");
+  serial.Writeln("jm 2606");
+  // read back boudnary scan
+  serial.Writeln("jd 00000000");
+  serial.Writeln("jm 00000000", false);
+  serial.Readln(inbuf, 64);
+  // enter test-logic-reset
+  serial.Writeln("jd 0000");
+  serial.Writeln("jm ffff");
+  asd_index = 0;
+  // note the condition for this for loop!
+  for (int i=3; asd_index<24; i++)
+    {
+      // ignore spaces
+      if (inbuf[i] == ' ')
+	continue;
+      asd_buf[asd_index++] = inbuf[i];
+      if (i > 64)
+	{
+	  printf("ERROR: boundary scan register read overflow:\n%s\n", inbuf);
+	  failed = true;
+	  break;
+	}
+    }
+  if (verbose)
+    printf("'1010...' test result: %.24s\n", asd_buf);
+  if (strncmp(asd_buf, one_zero, 24) != 0)
+    {
+      if (!verbose)
+	printf("'1010...' test result: %.24s\n", asd_buf);
+      failed = true;
+    }
+
+  // set ASD outputs to '0101....'
+  SetASDReg(CHANNEL_LOWER, 0x33);
+  SetASDReg(CHANNEL_UPPER, 0x33);
+  UpdateASD();
+  // issue sample instruction
+  serial.Writeln("jd 0240");
+  serial.Writeln("jm 2606");
+  // read back boudnary scan
+  serial.Writeln("jd 00000000");
+  serial.Writeln("jm 00000000", false);
+  serial.Readln(inbuf, 64);
+  // enter test-logic-reset
+  serial.Writeln("jd 0000");
+  serial.Writeln("jm ffff");
+  asd_index = 0;
+  // note the condition for this for loop!
+  for (int i=3; asd_index<24; i++)
+    {
+      // ignore spaces
+      if (inbuf[i] == ' ')
+	continue;
+      asd_buf[asd_index++] = inbuf[i];
+      if (i > 64)
+	{
+	  printf("ERRROR: boundary scan register read overflow:\n%s\n", inbuf);
+	  failed = true;
+	  break;
+	}
+    }
+  if (verbose)
+    printf("'0101...' test result: %.24s\n", asd_buf);
+  if (strncmp(asd_buf, zero_one, 24) != 0)
+    {
+      if (!verbose)
+	printf("'1010...' test result: %.24s\n", asd_buf);
+      failed = true;
+    }
+
+  // return ASD channel regs to their original values
+  SetASDReg(CHANNEL_LOWER, og_chanel_lower);
+  SetASDReg(CHANNEL_UPPER, og_chanel_upper);
+  UpdateASD();
+
+  if (!failed)
+    return true;
+  // else failed
+  return false;
 }

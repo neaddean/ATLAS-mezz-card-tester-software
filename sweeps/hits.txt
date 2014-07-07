@@ -1,1 +1,0 @@
-#thit	thr	eventID	hit#	channel	edge	error	coarse	fine	time	etime

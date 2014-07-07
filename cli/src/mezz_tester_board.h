@@ -143,6 +143,11 @@ class MezzTesterBoard
   int  ReadFIFO(HitReadout_s * HitReadout);
   int  FIFOFlags();
   void ResetFIFO();
+
+  bool TDC_JTAG_test(bool verbose = false);
+  bool TDC_ID_test(bool verbose = false);
+  bool ASD_JTAG_test(bool verbose = false);
+  bool ASD_TDC_test(bool verbose = false);
   
   SerialIO serial;
  private:
