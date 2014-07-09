@@ -97,10 +97,6 @@ void MezzTesterBoard::Init()
   serial.Writeln(" ");
   serial.Writeln("reset");
   serial.Writeln("gpio");
-  TDCcmd(GR);
-  TDCcmd(BCR);
-  TDCcmd(ECR);
-  ResetFIFO();
 }
 
 // Reset/init the board
@@ -112,6 +108,10 @@ void MezzTesterBoard::BoardReset()
   serial.Writeln("jd 0000");
   serial.Writeln("jm ffff");
   UpdateBoard();
+  TDCcmd(GR);
+  TDCcmd(BCR);
+  TDCcmd(ECR);
+  ResetFIFO();
 }
 
 // Reads the TDC status register and fills in the struct

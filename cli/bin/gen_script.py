@@ -1,7 +1,7 @@
 #! /bin/python2
 
 #default values
-num_sweeps = 50
+num_sweeps = 25
 match_window = 1999
 thresh_start = 100
 thresh_stop = 150
@@ -17,7 +17,7 @@ thresh_delta = 1
 # thresh_stop = 150
 # thresh_delta = 1
 
-filename = "436/longsweep"
+filename = "true436_sansinjector/longsweep"
 
 sweep_params = {"-n" : num_sweeps,      "-d" : thresh_delta, "-m" : match_window,
                 "-s" : thresh_start,    "-t" : thresh_stop}

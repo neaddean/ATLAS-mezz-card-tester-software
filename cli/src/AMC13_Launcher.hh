@@ -52,6 +52,7 @@ private:
   int cli(std::vector<std::string>,std::vector<uint64_t>);
   int tsweep_man(std::vector<std::string>,std::vector<uint64_t>);
   int tsweep(std::vector<std::string>,std::vector<uint64_t>);
+  int fsweep(std::vector<std::string>,std::vector<uint64_t>);
   int Trigger(std::vector<std::string>,std::vector<uint64_t>);
   int jtw(std::vector<std::string>,std::vector<uint64_t>);
   int jaw(std::vector<std::string>,std::vector<uint64_t>);
@@ -71,5 +72,6 @@ private:
   int load_inject(std::vector<std::string>,std::vector<uint64_t>);
   int dac_sweep(std::vector<std::string>,std::vector<uint64_t>);
   int jtag_test(std::vector<std::string>,std::vector<uint64_t>);
+  int TDC_status(std::vector<std::string>,std::vector<uint64_t>);
 };
 #endif

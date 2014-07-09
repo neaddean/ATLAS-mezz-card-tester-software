@@ -110,37 +110,40 @@ void MezzTester::printTDCError(int errmask, int mask)
     printf("TDC error: hit error.\n");
 }
 
-void MezzTester::printTDCStatus()
+void MezzTester::printTDCStatus(bool printstatus)
 {
   getTDCStatus();
-  // int fifoflag = Board.FIFOFlags();
-  // switch(fifoflag)
-  //   {
-  //   case FIFO_EMPTY: printf("fifo is empty.\n"); break;
-  //   case FIFO_NOT_EMPTY: printf("fifo is not empty.\n"); break;
-  //   case FIFO_FULL: printf("fifo is full.\n"); break;
-  //   default: printf("fifo is invalid. Register value: %04X\n", fifoflag);
-  //   }
-  // switch(TDCStatus.rfifo)
-  //   {
-  //   case FIFO_EMPTY: printf("rfifo is empty.\n"); break;
-  //   case FIFO_NOT_EMPTY: printf("rfifo is not empty.\n"); break;
-  //   case FIFO_FULL: printf("rfifo is full.\n"); break;
-  //   default: printf("rfifo is invalid. Register value: %04X\n", TDCStatus.tfifo);
-  //   }
-  // switch(TDCStatus.tfifo)
-  //   {
-  //   case FIFO_EMPTY: printf("tfifo is empty.\n"); break;
-  //   case FIFO_NOT_EMPTY: printf("tfifo is not empty.\n"); break;
-  //   case FIFO_NEARLY_FULL: printf("tfifo is nearly full.\n"); break;
-  //   case FIFO_FULL: printf("tfifo is full.\n"); break;
-  //   default: printf("tfifo is invalid. Register value: %04X.\n", TDCStatus.tfifo);
-  //   }
-  //printf("tfifo occupancy: %d.\n", TDCStatus.tfifo_occ);
-  //printf("rfifo occupancy: %d.\n", TDCStatus.rfifo_occ);
-  //printf("coarse counter: %d.\n", TDCStatus.coarse_counter);
+  if (printstatus)
+    {
+      int fifoflag = Board.FIFOFlags();
+      switch(fifoflag)
+	{
+	case FIFO_EMPTY: printf("fifo is empty.\n"); break;
+	case FIFO_NOT_EMPTY: printf("fifo is not empty.\n"); break;
+	case FIFO_FULL: printf("fifo is full.\n"); break;
+	default: printf("fifo is invalid. Register value: %04X\n", fifoflag);
+	}
+      switch(TDCStatus.rfifo)
+	{
+	case FIFO_EMPTY: printf("rfifo is empty.\n"); break;
+	case FIFO_NOT_EMPTY: printf("rfifo is not empty.\n"); break;
+	case FIFO_FULL: printf("rfifo is full.\n"); break;
+	default: printf("rfifo is invalid. Register value: %04X\n", TDCStatus.tfifo);
+	}
+      switch(TDCStatus.tfifo)
+	{
+	case FIFO_EMPTY: printf("tfifo is empty.\n"); break;
+	case FIFO_NOT_EMPTY: printf("tfifo is not empty.\n"); break;
+	case FIFO_NEARLY_FULL: printf("tfifo is nearly full.\n"); break;
+	case FIFO_FULL: printf("tfifo is full.\n"); break;
+	default: printf("tfifo is invalid. Register value: %04X.\n", TDCStatus.tfifo);
+	}
+      printf("tfifo occupancy: %d.\n", TDCStatus.tfifo_occ);
+      printf("rfifo occupancy: %d.\n", TDCStatus.rfifo_occ);
+      printf("coarse counter: %d.\n", TDCStatus.coarse_counter);
+    }
   if (TDCStatus.errorflags != 0)
-      printTDCError(TDCStatus.errorflags);
+    printTDCError(TDCStatus.errorflags);
 }
 
 void MezzTester::printTDCHits(int maskflags)

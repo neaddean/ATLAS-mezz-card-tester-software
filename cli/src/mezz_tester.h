@@ -15,7 +15,7 @@ class MezzTester
   void getTDCStatus();
   int  TDCRunning();
   void printTDCError(int errmask, int mask = 0);
-  void printTDCStatus();
+  void printTDCStatus(bool printstatus = false);
   void printTDCHits(int maskflags = 0);
   int  getReadout(int maskflags = 0);
   int  getTotalHits() {return totalhits;}

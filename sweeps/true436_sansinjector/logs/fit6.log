@@ -1,0 +1,150 @@
+
+
+*******************************************************************************
+Wed Jul  9 15:10:01 2014
+
+
+FIT:    data read from 'longsweep'.i using 1:3
+        format = x:z
+        x range restricted to [-50.0000 : 50.0000]
+        #datapoints = 48
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f1(x)
+fitted parameters initialized with current variable values
+
+
+
+ Iteration 0
+ WSSR        : 7.72103e+14       delta(WSSR)/WSSR   : 0
+ delta(WSSR) : 0                 limit for stopping : 1e-05
+ lambda	  : 360516
+
+initial set of free parameter values
+
+Ro              = 1.3e+07
+Voff            = 2
+sigma           = 10
+
+After 12 iterations the fit converged.
+final sum of squares of residuals : 1.51442e+14
+rel. change during last iteration : -5.9677e-06
+
+degrees of freedom    (FIT_NDF)                        : 45
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 1.8345e+06
+variance of residuals (reduced chisquare) = WSSR/ndf   : 3.36538e+12
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+Ro              = 1.55608e+07      +/- 7.323e+05    (4.706%)
+Voff            = -6.15449         +/- 0.5771       (9.377%)
+sigma           = 10.6173          +/- 0.5771       (5.435%)
+
+
+correlation matrix of the fit parameters:
+
+               Ro     Voff   sigma  
+Ro              1.000 
+Voff           -0.000  1.000 
+sigma          -0.577  0.000  1.000 
+
+
+*******************************************************************************
+Wed Jul  9 15:30:34 2014
+
+
+FIT:    data read from 'longsweep'.i using 1:3
+        format = x:z
+        x range restricted to [-50.0000 : 50.0000]
+        #datapoints = 51
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f1(x)
+fitted parameters initialized with current variable values
+
+
+
+ Iteration 0
+ WSSR        : 1.48527e+14       delta(WSSR)/WSSR   : 0
+ delta(WSSR) : 0                 limit for stopping : 1e-05
+ lambda	  : 349752
+
+initial set of free parameter values
+
+Ro              = 1.3e+07
+Voff            = 2
+sigma           = 10
+
+After 12 iterations the fit converged.
+final sum of squares of residuals : 1.07313e+14
+rel. change during last iteration : -4.91478e-06
+
+degrees of freedom    (FIT_NDF)                        : 48
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 1.49522e+06
+variance of residuals (reduced chisquare) = WSSR/ndf   : 2.23569e+12
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+Ro              = 1.55076e+07      +/- 6.534e+05    (4.213%)
+Voff            = 1.55599          +/- 0.4311       (27.71%)
+sigma           = 8.85967          +/- 0.4311       (4.866%)
+
+
+correlation matrix of the fit parameters:
+
+               Ro     Voff   sigma  
+Ro              1.000 
+Voff            0.000  1.000 
+sigma          -0.577 -0.000  1.000 
+
+
+*******************************************************************************
+Wed Jul  9 15:51:43 2014
+
+
+FIT:    data read from 'longsweep'.i using 1:3
+        format = x:z
+        x range restricted to [-50.0000 : 50.0000]
+        #datapoints = 48
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f1(x)
+fitted parameters initialized with current variable values
+
+
+
+ Iteration 0
+ WSSR        : 1.63359e+14       delta(WSSR)/WSSR   : 0
+ delta(WSSR) : 0                 limit for stopping : 1e-05
+ lambda	  : 360516
+
+initial set of free parameter values
+
+Ro              = 1.3e+07
+Voff            = 2
+sigma           = 10
+
+After 12 iterations the fit converged.
+final sum of squares of residuals : 1.08673e+14
+rel. change during last iteration : -7.15491e-06
+
+degrees of freedom    (FIT_NDF)                        : 45
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 1.55402e+06
+variance of residuals (reduced chisquare) = WSSR/ndf   : 2.41497e+12
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+Ro              = 1.59107e+07      +/- 6.88e+05     (4.324%)
+Voff            = 1.57875          +/- 0.4311       (27.3%)
+sigma           = 8.6314           +/- 0.4311       (4.994%)
+
+
+correlation matrix of the fit parameters:
+
+               Ro     Voff   sigma  
+Ro              1.000 
+Voff            0.000  1.000 
+sigma          -0.577 -0.000  1.000 
