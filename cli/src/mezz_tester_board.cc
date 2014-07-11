@@ -178,7 +178,7 @@ void MezzTesterBoard::GetStatus(TDCStatus_s * TDCStatus)
   TDCStatus->rfifo_occ = statusbuf[5] & 0x03F;
 }
 
-// flush all register
+// flush all registers
 void MezzTesterBoard::UpdateBoard()
 {
   UpdateTDC();
@@ -343,7 +343,7 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
   // if we had hits and all channels were disabled, then produce error
   if (EnabledChannel == ALL_OFF)
     {
-      printf("ERROR: got hits with all channels on TDC disabled\n");
+      printf("*******\nERROR: got hits with all channels on TDC disabled\n*******\n");
       // return READSIZE_ERROR;
     }
 
@@ -413,7 +413,7 @@ void MezzTesterBoard::SetChannel(int set_channel)
       TDCRegs[13] = 0;
       TDCRegs[14] = 0;
     }    
-  if (set_channel < 12)
+  else if (set_channel < 12)
     {
       TDCRegs[13] = (1 << (set_channel));
       TDCRegs[14] = 0;
@@ -545,13 +545,14 @@ bool MezzTesterBoard::ASD_TDC_test(bool verbose)
   int og_chanel_upper = GetASDReg(CHANNEL_UPPER);
   const char * one_zero = "101010101010101010101010";
   const char * zero_one = "010101010101010101010101";
-  char asd_buf[64];
+  char one_zero_buf[64];
+  char zero_one_buf[64];
   char inbuf[64];
   bool failed = false;
   int asd_index;
   // set asd outputs to '1010...'
-  SetASDReg(CHANNEL_LOWER, 0xCC);
-  SetASDReg(CHANNEL_UPPER, 0xCC);
+  SetASDReg(CHANNEL_LOWER, 0xDD);
+  SetASDReg(CHANNEL_UPPER, 0xDD);
   UpdateASD();
   // enter test-logic-reset
   serial.Writeln("jd 0000");
@@ -573,7 +574,7 @@ bool MezzTesterBoard::ASD_TDC_test(bool verbose)
       // ignore spaces
       if (inbuf[i] == ' ')
 	continue;
-      asd_buf[asd_index++] = inbuf[i];
+      one_zero_buf[asd_index++] = inbuf[i];
       if (i > 64)
 	{
 	  printf("ERROR: boundary scan register read overflow:\n%s\n", inbuf);
@@ -582,17 +583,13 @@ bool MezzTesterBoard::ASD_TDC_test(bool verbose)
 	}
     }
   if (verbose)
-    printf("'1010...' test result: %.24s\n", asd_buf);
-  if (strncmp(asd_buf, one_zero, 24) != 0)
-    {
-      if (!verbose)
-	printf("'1010...' test result: %.24s\n", asd_buf);
-      failed = true;
-    }
-
+    printf("'1010...' test result: %.24s\n", one_zero_buf);
+  if (strncmp(one_zero_buf, one_zero, 24) != 0)
+    failed = true;
+  
   // set ASD outputs to '0101....'
-  SetASDReg(CHANNEL_LOWER, 0x33);
-  SetASDReg(CHANNEL_UPPER, 0x33);
+  SetASDReg(CHANNEL_LOWER, 0x77);
+  SetASDReg(CHANNEL_UPPER, 0x77);
   UpdateASD();
   // issue sample instruction
   serial.Writeln("jd 0240");
@@ -611,7 +608,7 @@ bool MezzTesterBoard::ASD_TDC_test(bool verbose)
       // ignore spaces
       if (inbuf[i] == ' ')
 	continue;
-      asd_buf[asd_index++] = inbuf[i];
+      zero_one_buf[asd_index++] = inbuf[i];
       if (i > 64)
 	{
 	  printf("ERRROR: boundary scan register read overflow:\n%s\n", inbuf);
@@ -620,14 +617,10 @@ bool MezzTesterBoard::ASD_TDC_test(bool verbose)
 	}
     }
   if (verbose)
-    printf("'0101...' test result: %.24s\n", asd_buf);
-  if (strncmp(asd_buf, zero_one, 24) != 0)
-    {
-      if (!verbose)
-	printf("'1010...' test result: %.24s\n", asd_buf);
-      failed = true;
-    }
-
+    printf("'0101...' test result: %.24s\n", zero_one_buf);
+  if (strncmp(zero_one_buf, zero_one, 24) != 0)
+    failed = true;
+  
   // return ASD channel regs to their original values
   SetASDReg(CHANNEL_LOWER, og_chanel_lower);
   SetASDReg(CHANNEL_UPPER, og_chanel_upper);
@@ -636,5 +629,10 @@ bool MezzTesterBoard::ASD_TDC_test(bool verbose)
   if (!failed)
     return true;
   // else failed
+  if (!verbose)
+    {
+      printf("'1010...' test result: %.24s\n", one_zero_buf);
+      printf("'0101...' test result: %.24s\n", zero_one_buf);
+    }
   return false;
 }

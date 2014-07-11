@@ -125,7 +125,7 @@ class MezzTesterBoard
   int  GetChannelMask() {return ChannelMask;}
   void SetChannelMask(int mask) {ChannelMask=mask;}
   void SetChannel(int set_channel);
-  int  getChannel() {return EnabledChannel;}
+  int  GetChannel() {return EnabledChannel;}
   void SetStrobePulsePeriod(int value) {StrobePulsePeriod=value;}
   int  GetStrobePulsePeriod() {return StrobePulsePeriod;}
   void SetHitPeriod(int value) {HitPeriod=value;}

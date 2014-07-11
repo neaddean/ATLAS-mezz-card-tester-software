@@ -1,10 +1,10 @@
 #! /bin/python2
 
 #default values
-num_sweeps = 25
+num_sweeps = 1000
 match_window = 1999
-thresh_start = 100
-thresh_stop = 150
+thresh_start = 90
+thresh_stop = 160
 thresh_delta = 1
 
 # num_sweeps = 50
@@ -17,7 +17,7 @@ thresh_delta = 1
 # thresh_stop = 150
 # thresh_delta = 1
 
-filename = "true436_sansinjector/longsweep"
+filename = "fsweep1/channel"
 
 sweep_params = {"-n" : num_sweeps,      "-d" : thresh_delta, "-m" : match_window,
                 "-s" : thresh_start,    "-t" : thresh_stop}
@@ -30,7 +30,7 @@ outfile = open("fullsweep", "w")
 
 for i in range(0, 24, 1):
     mystr = ''
-    mystr += "tsweep "
+    mystr += "fsweep "
     for flag, arg in sweep_params.iteritems():
         mystr += flag + " " + str(arg) + " "
     mystr += "-p " + str(i) + " "
