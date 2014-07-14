@@ -165,6 +165,13 @@ int AMC13_Launcher::tsweep_man(std::vector<std::string> strArg,
 	  sprintf(file_name_buffer,"../../sweeps/%s", strArg[arg+1].c_str());
 	  sweep_file = fopen(file_name_buffer, "w");
 	}
+      else
+	{
+	  printf("Error: invalid argument: %s %s\n", strArg[arg].c_str(), strArg[arg+1].c_str());
+	  if (sweep_file!= NULL)
+	    fclose(sweep_file);
+	  return 0;
+	}
     }
 	      
   if (sweep_file == NULL)
@@ -336,6 +343,13 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
 	  sweep_file = fopen(file_name_buffer, "w");
 	  recording = true;
 	}
+      else
+	{
+	  printf("Error: invalid argument: %s %s\n", strArg[arg].c_str(), strArg[arg+1].c_str());
+	  if (sweep_file!= NULL)
+	    fclose(sweep_file);
+	  return 0;
+	}
     }
 
   if (recording)
@@ -497,6 +511,13 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
 	  sweep_file = fopen(file_name_buffer, "w");
 	  recording = true;
 	}
+      else
+	{
+	  printf("Error: invalid argument: %s %s\n", strArg[arg].c_str(), strArg[arg+1].c_str());
+	  if (sweep_file!= NULL)
+	    fclose(sweep_file);
+	  return 0;
+	}
     }
 
   if (recording)
@@ -575,13 +596,10 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
 		 token & 0x00FF);
 	}
       else if (inbuf[0]=='N')
-	{
 	  runhits = token;
-	}
       else
-	{
 	  printf("Error: invalid repsonse from \"%s\": %s\n", outbuf, inbuf);
-	}
+
       rate = (float)runhits/(TDC_CLK*(match_window+1)*num_sweeps);
 
       if (recording)
@@ -627,7 +645,7 @@ int AMC13_Launcher::dac_sweep(std::vector<std::string> strArg,
   int hit_period = 100;
   bool recording = false;
   
-  FILE * dacfile;
+  FILE * dacfile = NULL;
 
   if ((strArg.size()%2==1) && (strArg.size() > 2))
     {
@@ -674,14 +692,22 @@ int AMC13_Launcher::dac_sweep(std::vector<std::string> strArg,
 	channel = intArg[arg+1];
       else if(strArg[arg].compare("-f")==0)
 	{
-	sprintf(file_name_buffer, "../../sweeps/%s",strArg[arg+1].c_str());
-	dacfile = fopen(file_name_buffer, "w");
-	fprintf(dacfile, "#num_sweeps:%d", num_sweeps);
-	fprintf(dacfile, "#thresh\tdac\n");
-	recording = true;
+	  sprintf(file_name_buffer, "../../sweeps/%s",strArg[arg+1].c_str());
+	  dacfile = fopen(file_name_buffer, "w");
+	  fprintf(dacfile, "#num_sweeps:%d\n", num_sweeps);
+	  fprintf(dacfile, "#thresh\tdac\n");
+	  recording = true;
+	}
+      else
+	{
+	  printf("Error: invalid argument: %s\n", strArg[arg].c_str());
+	  if (dacfile != NULL)
+	    fclose(dacfile);
+	  return 0;
 	}
     }
-  
+
+  printf("Channel: %d\n", channel);
   printf("thresh\tdac\n");
 
   mezzTester->Board.SetHitPeriod(hit_period);
@@ -732,7 +758,7 @@ int AMC13_Launcher::dac_sweep(std::vector<std::string> strArg,
 }
 
 int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
-			      std::vector<uint64_t> intArg)
+			       std::vector<uint64_t> intArg)
 {
   char file_name_buffer[100];
   int num_sweeps = 50;
@@ -747,7 +773,7 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
   int hit_period = 100;
   bool recording = false;
   
-  FILE * dacfile;
+  FILE * dacfile = NULL;
 
   if ((strArg.size()%2==1) && (strArg.size() > 2))
     {
@@ -796,14 +822,22 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
 	{
 	  sprintf(file_name_buffer, "../../sweeps/%s",strArg[arg+1].c_str());
 	  dacfile = fopen(file_name_buffer, "w");
-	  fprintf(dacfile, "#num_sweeps:%d", num_sweeps);
+	  fprintf(dacfile, "#num_sweeps:%d\n", num_sweeps);
 	  fprintf(dacfile, "#thresh\tdac\n");
 	  recording = true;
-	}    
+	}   
+      else
+	{
+	  printf("Error: invalid argument: %s\n", strArg[arg].c_str());
+	  if (dacfile != NULL)
+	    fclose(dacfile);
+	  return 0;
+	}
     }
   
-  printf("thresh\tdac\n");
-
+  printf("Channel: %d\t", channel);
+  //printf("thresh\tdac\n");
+  
   mezzTester->Board.SetHitPeriod(hit_period);
   mezzTester->SetWindow(match_window);
   mezzTester->Board.SetChannel(channel);
@@ -843,37 +877,35 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
 		 token & 0x00FF);
 	}
       else if (inbuf[0]=='N')
-	{
 	  runhits = token;
-	}
       else
-	{
 	  printf("Error: invalid repsonse from \"ts\": %s\n", inbuf);
-	}
       
       if (runhits > 0)
 	{
 	  thresh += thresh_delta;
-	    continue;
+	  continue;
 	}
       if (recording)
 	fprintf(dacfile, "%d\t%d\n", 2*(thresh-127), dac);
-      printf("%d\t%d\n", thresh, dac);
+      // printf("%d\t%d\n", thresh, dac);
       dac += dac_delta;
       mezzTester->Board.SetAllDAC(dac);
       mezzTester->Board.UpdateDAC();
 
       if (dac > 4095)
 	{
-	  printf("Error: dac = %d, value to high\n", dac);
+	  //printf("Error: dac = %d, value to high\n", dac);
+	  printf("Error: %d\t%d\n", thresh, dac);
 	  break;
 	}
     } // end while loop
+  if (dac < 4095)
+    puts("Passed");
   if (recording)
     fclose(dacfile);
   return 0;
 }
-
 
 int AMC13_Launcher::Trigger(std::vector<std::string> strArg,
 			    std::vector<uint64_t> intArg)
@@ -1046,10 +1078,12 @@ int AMC13_Launcher::dump(std::vector<std::string> strArg,
 	printf("\t%d:\t%d\n", i, mezzTester->Board.GetASDReg(i));
       printf("DAC:%d\n"
 	     "HP :%d\n"
-	     "SP :%d\n",
+	     "SP :%d\n"
+	     "channel mask: %06X\n",
 	     mezzTester->Board.GetDAC(0),
 	     mezzTester->Board.GetHitPeriod(),
-	     mezzTester->Board.GetStrobePulsePeriod());
+	     mezzTester->Board.GetStrobePulsePeriod(),
+	     mezzTester->Board.GetChannelMask());
     }
   return 0;
 }
@@ -1092,8 +1126,6 @@ int AMC13_Launcher::load_inject(std::vector<std::string> strArg,
 				std::vector<uint64_t> intArg)
 {
   mezzTester->Board.SetStrobePulsePeriod(0x00);
-  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0x00);
-  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0x07);
   mezzTester->Board.SetHitPeriod(100);
   mezzTester->SetWindow(1999);
   mezzTester->Board.SetChannel(0);
@@ -1135,7 +1167,7 @@ int AMC13_Launcher::jtag_test(std::vector<std::string> strArg,
 }
 
 int AMC13_Launcher::TDC_status(std::vector<std::string> strArg,
-			      std::vector<uint64_t> intArg)
+			       std::vector<uint64_t> intArg)
 {
   mezzTester->printTDCStatus(true);
   return 0;

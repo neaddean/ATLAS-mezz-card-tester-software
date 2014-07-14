@@ -1,0 +1,25 @@
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 0 -f fsweep1/dsweeps/dac0
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 1 -f fsweep1/dsweeps/dac1
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 2 -f fsweep1/dsweeps/dac2
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 3 -f fsweep1/dsweeps/dac3
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 4 -f fsweep1/dsweeps/dac4
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 5 -f fsweep1/dsweeps/dac5
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 6 -f fsweep1/dsweeps/dac6
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 7 -f fsweep1/dsweeps/dac7
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 8 -f fsweep1/dsweeps/dac8
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 9 -f fsweep1/dsweeps/dac9
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 10 -f fsweep1/dsweeps/dac10
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 11 -f fsweep1/dsweeps/dac11
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 12 -f fsweep1/dsweeps/dac12
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 13 -f fsweep1/dsweeps/dac13
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 14 -f fsweep1/dsweeps/dac14
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 15 -f fsweep1/dsweeps/dac15
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 16 -f fsweep1/dsweeps/dac16
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 17 -f fsweep1/dsweeps/dac17
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 18 -f fsweep1/dsweeps/dac18
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 19 -f fsweep1/dsweeps/dac19
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 20 -f fsweep1/dsweeps/dac20
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 21 -f fsweep1/dsweeps/dac21
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 22 -f fsweep1/dsweeps/dac22
+fdac_sweep -n 25 -x 50 -t 140 -p 0xFFFFFF -c 23 -f fsweep1/dsweeps/dac23
+quit

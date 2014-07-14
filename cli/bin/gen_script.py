@@ -17,7 +17,7 @@ thresh_delta = 1
 # thresh_stop = 150
 # thresh_delta = 1
 
-filename = "fsweep1/channel"
+filename = "436/longsweep"
 
 sweep_params = {"-n" : num_sweeps,      "-d" : thresh_delta, "-m" : match_window,
                 "-s" : thresh_start,    "-t" : thresh_stop}
