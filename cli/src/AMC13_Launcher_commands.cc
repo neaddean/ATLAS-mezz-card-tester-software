@@ -37,6 +37,8 @@ void AMC13_Launcher::LoadCommandList()
   AddCommand("fdac_sweep",&AMC13_Launcher::fdac_sweep,"fast sweep threshold and dac");
   AddCommand("jtag_test",&AMC13_Launcher::jtag_test,"perform jtag tests, run with any"
 	     " argument for verbose");
+  AddCommand("strobe_test",&AMC13_Launcher::strobe_test,"perform strobe test on all channels");
+  AddCommand("trig_test",&AMC13_Launcher::trig_test,"perform trigger/reset test on all channels");
   AddCommand("jts",&AMC13_Launcher::TDC_status,"print the status of the tdc");
 }
 
@@ -203,6 +205,10 @@ int AMC13_Launcher::tsweep_man(std::vector<std::string> strArg,
   mezzTester->Board.SetTDCReg(COARSE_OFFSET, coarse_offset);
   mezzTester->Board.SetTDCReg(COUNT_ROLLOVER, coarse_rollover);
   mezzTester->Board.SetChannel(channel);
+  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0);
+  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0);
+  mezzTester->Board.SetStrobePulsePeriod(0);
+  mezzTester->Board.SetChannelMask(0);
   mezzTester->Board.UpdateBoard();
 
   printf("Channel: %d\n", channel);
@@ -374,6 +380,10 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
     fprintf(sweep_file,"#thr\thits\tfreq\twindow\terror\n");
   
   mezzTester->SetWindow(match_window);
+  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0);
+  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0);
+  mezzTester->Board.SetStrobePulsePeriod(0);
+  mezzTester->Board.SetChannelMask(0);
   mezzTester->Board.SetChannel(channel);
   mezzTester->Board.UpdateBoard();
   mezzTester->ResetTDC();
@@ -544,6 +554,11 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
   
   mezzTester->SetWindow(match_window);
   mezzTester->Board.SetChannel(channel);
+  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0);
+  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0);
+  mezzTester->Board.SetStrobePulsePeriod(0);
+  mezzTester->Board.SetChannelMask(0);
+  mezzTester->Board.SetAllDAC(0);
   mezzTester->Board.UpdateBoard();
   mezzTester->ResetTDC();
 
@@ -711,6 +726,9 @@ int AMC13_Launcher::dac_sweep(std::vector<std::string> strArg,
   printf("thresh\tdac\n");
 
   mezzTester->Board.SetHitPeriod(hit_period);
+  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0);
+  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0);
+  mezzTester->Board.SetStrobePulsePeriod(0);
   mezzTester->SetWindow(match_window);
   mezzTester->Board.SetChannel(channel);
   mezzTester->Board.SetChannelMask(channelmask);
@@ -763,7 +781,7 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
   char file_name_buffer[100];
   int num_sweeps = 50;
   int match_window = 1999;
-  int thresh = 180;
+  int thresh = 170;
   int thresh_delta = 1;
   int thresh_stop = 255;
   int dac = 0;
@@ -839,6 +857,9 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
   //printf("thresh\tdac\n");
   
   mezzTester->Board.SetHitPeriod(hit_period);
+  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0);
+  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0);
+  mezzTester->Board.SetStrobePulsePeriod(0);
   mezzTester->SetWindow(match_window);
   mezzTester->Board.SetChannel(channel);
   mezzTester->Board.SetChannelMask(channelmask);
@@ -1170,5 +1191,174 @@ int AMC13_Launcher::TDC_status(std::vector<std::string> strArg,
 			       std::vector<uint64_t> intArg)
 {
   mezzTester->printTDCStatus(true);
+  return 0;
+}
+
+int AMC13_Launcher::strobe_test(std::vector<std::string> strArg,
+				std::vector<uint64_t> intArg)
+{
+  int num_sweeps = 1000;
+  int match_window = 1999;
+  int thresh = 0;
+  int strobe_period = 99; 
+
+  if ((strArg.size()%2==1) && (strArg.size() > 2))
+    {
+      printf("Error: unmatched arguments\n");
+      return 0;
+    }
+
+  for (size_t arg=0; arg < strArg.size(); arg+=2)
+    {
+      if (strArg[arg].compare("-h")==0) 
+	{
+	  printf("usage (default):\n"
+		 "-h\tdisplays this message\n"
+		 "-n\tnumber of triggers run (1000)\n"
+		 "-m\tmatch window (1999)\n"
+		 "-t\tthreshold (0)\n"
+		 "-p\tstrobe pulse period(99)\n");
+	  return 0;
+	}
+      else if(strArg[arg].compare("-n")==0)
+	num_sweeps = intArg[arg+1];
+      else if(strArg[arg].compare("-m")==0)
+	match_window = intArg[arg+1];
+      else if(strArg[arg].compare("-t")==0)
+	thresh = intArg[arg+1];
+      else if(strArg[arg].compare("-p")==0)
+        strobe_period = intArg[arg+1];
+      else
+	{
+	  printf("Error: invalid argument: %s\n", strArg[arg].c_str());
+	  return 0;
+	}
+    }
+      
+  mezzTester->Board.SetStrobePulsePeriod(strobe_period);
+  mezzTester->SetWindow(match_window);
+  mezzTester->Board.SetChannelMask(0);
+  mezzTester->Board.SetASDReg(DISC1_THR, thresh);
+  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0xFF);
+  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0x07);
+  mezzTester->Board.SetAllDAC(0);
+  mezzTester->Board.UpdateBoard();
+  mezzTester->ResetTDC();
+
+  int runhits;
+  char outbuf[25];
+  char inbuf[25];
+  int token;
+  int expected_hits = (int) floor ( (match_window + 1) / (4 * (strobe_period + 1)) * num_sweeps );
+  printf("Expected hits: %d\n", expected_hits);
+
+    for (int chan=0; chan < 24; chan++)
+      {
+	mezzTester->Board.SetChannel(chan);
+	mezzTester->Board.UpdateTDC();
+	runhits = 0;
+
+	printf("Channel %d....", chan);
+
+	sprintf(outbuf, "ts %04X 4", num_sweeps);
+	mezzTester->Board.serial.Writeln(outbuf,false);
+	mezzTester->Board.serial.Readln(inbuf, 25);
+	token = strtol(inbuf+1, NULL, 16);
+	if (inbuf[0]=='E')
+	  {
+	    mezzTester->printTDCError(token);
+	    continue; 
+	  }
+	else if (inbuf[0]=='I')
+	  {
+	    printf("Error: event ID mismatch (4 LSBits)\n"
+		   "Header: %d Trailer: %d\n", 
+		   (token & 0xFF00) >> 8,
+		   token & 0x00FF);
+	  }
+	else if (inbuf[0]=='N')
+	  runhits = token;
+	else
+	  printf("Error: invalid repsonse from \"ts\": %s\n", inbuf);
+
+
+	if (runhits != expected_hits)
+	  printf("FAILED! Expected hits: %d Counted hits: %d\n", expected_hits, runhits);
+	else
+	  printf("Passed!\n");
+      } // end for loop
+  return 0;
+}
+
+int AMC13_Launcher::trig_test(std::vector<std::string> strArg,
+			      std::vector<uint64_t> intArg)
+{
+  int num_sweeps = 3;
+
+  if ((strArg.size()%2==1) && (strArg.size() > 2))
+    {
+      printf("Error: unmatched arguments\n");
+      return 0;
+    }
+
+  for (size_t arg=0; arg < strArg.size(); arg+=2)
+    {
+      if (strArg[arg].compare("-h")==0) 
+	{
+	  printf("usage (default):\n"
+		 "-h\tdisplays this message\n"
+		 "-n\tnumber of triggers run (3)\n");
+	  return 0;
+	}
+      else if(strArg[arg].compare("-n")==0)
+	num_sweeps = intArg[arg+1];
+      else
+	{
+	  printf("Error: invalid argument: %s\n", strArg[arg].c_str());
+	  return 0;
+	}
+    }
+      
+  mezzTester->Board.SetStrobePulsePeriod(0);
+  mezzTester->SetWindow(1999);
+  mezzTester->Board.SetChannelMask(0);
+  mezzTester->Board.SetASDReg(DISC1_THR, 0);
+  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0);
+  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0);
+  mezzTester->Board.SetAllDAC(0);
+  mezzTester->Board.UpdateBoard();
+
+  int firstID, lastID;
+
+  for (int chan=0; chan < 24; chan++)
+    {
+      mezzTester->Board.SetChannel(chan);
+      mezzTester->Board.UpdateTDC();
+      mezzTester->ResetTDC();
+
+      printf("Channel %d....", chan);
+
+      // make sure first event id i 0
+      while(mezzTester->Board.FIFOFlags() == FIFO_EMPTY)
+	mezzTester->Board.TDCcmd(TRIGGER_W_PULSE);
+      mezzTester->getReadout();
+
+      firstID = mezzTester->HitReadout.eventID;
+
+      for (int i=0; i<num_sweeps; i++)
+	{
+	  while(mezzTester->Board.FIFOFlags() == FIFO_EMPTY)
+	    mezzTester->Board.TDCcmd(TRIGGER_W_PULSE);
+	  mezzTester->getReadout();
+	}
+
+      lastID = mezzTester->HitReadout.eventID;
+
+      if ((firstID != 0) || (lastID != num_sweeps))
+	printf("FAILED!\n\tfirst ID (should be 0): %d\n\tlast ID (should be %d): %d\n",
+	       firstID, num_sweeps, lastID);
+      else
+	printf("passed!\n");
+    }
   return 0;
 }

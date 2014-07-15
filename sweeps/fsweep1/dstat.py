@@ -54,6 +54,8 @@ def process_file(filename):
     #matplotlib ploting
     ax.set_title('Dac sweep on channel '+ re.findall('\d+',filename)[-1],
                  fontsize=22)
+    ax.set_xlabel("Dac setting (out of 0xFFF)")
+    ax.set_ylabel("ASD Threshold setting")
     ax.legend(['data', 'fit'], loc=4)
     
     return fig, popt
