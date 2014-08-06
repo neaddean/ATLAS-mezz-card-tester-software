@@ -2,10 +2,10 @@
 
 #default values
 num_sweeps = 25
-dac_delta = 50
-thresh = 140
+dac_delta = 100
+thresh = 160
 
-filename = "fsweep1/dsweeps/dac"
+filename = "test/dsweep/dac"
 
 outfile = open("dacsweep", "w")
 

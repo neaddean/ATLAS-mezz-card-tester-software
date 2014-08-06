@@ -3,8 +3,8 @@
 #default values
 num_sweeps = 1000
 match_window = 1999
-thresh_start = 90
-thresh_stop = 160
+thresh_start = 100
+thresh_stop = 154
 thresh_delta = 1
 
 # num_sweeps = 50
@@ -17,7 +17,7 @@ thresh_delta = 1
 # thresh_stop = 150
 # thresh_delta = 1
 
-filename = "436/longsweep"
+filename = "test/tsweep/channel"
 
 sweep_params = {"-n" : num_sweeps,      "-d" : thresh_delta, "-m" : match_window,
                 "-s" : thresh_start,    "-t" : thresh_stop}

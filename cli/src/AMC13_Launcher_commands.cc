@@ -862,7 +862,8 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
   mezzTester->Board.SetStrobePulsePeriod(0);
   mezzTester->SetWindow(match_window);
   mezzTester->Board.SetChannel(channel);
-  mezzTester->Board.SetChannelMask(channelmask);
+  mezzTester->Board.SetChannelMask( channelmask);
+  (void) channelmask;
 
   mezzTester->Board.UpdateBoard();
   mezzTester->ResetTDC();
@@ -922,7 +923,7 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
 	}
     } // end while loop
   if (dac < 4095)
-    puts("Passed");
+    printf("%d\t%d\n", thresh, dac);
   if (recording)
     fclose(dacfile);
   return 0;
@@ -1164,6 +1165,8 @@ int AMC13_Launcher::jtag_test(std::vector<std::string> strArg,
   if (intArg.size() > 0)
     verbose = true;
 
+  puts("Testing JTAG");
+
   if (mezzTester->Board.TDC_JTAG_test(verbose))
     printf("TDC JTAG test....passed!\n");
   else 
@@ -1244,6 +1247,8 @@ int AMC13_Launcher::strobe_test(std::vector<std::string> strArg,
   mezzTester->Board.SetAllDAC(0);
   mezzTester->Board.UpdateBoard();
   mezzTester->ResetTDC();
+
+  puts("Testing ASD strobe");
 
   int runhits;
   char outbuf[25];
@@ -1327,6 +1332,8 @@ int AMC13_Launcher::trig_test(std::vector<std::string> strArg,
   mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0);
   mezzTester->Board.SetAllDAC(0);
   mezzTester->Board.UpdateBoard();
+
+  puts("Testing trigger resets");
 
   int firstID, lastID;
 
