@@ -4,7 +4,7 @@ AMC13_Launcher::AMC13_Launcher(const char * device_name)
 {
   LoadCommandList(); //Load list
   // open mezzTester with saving=false and channelmask=0;
-  mezzTester = new MezzTester(device_name, true, 0);
+  mezzTester = new MezzTester(device_name, false, 0);
 };
 
 AMC13_Launcher::~AMC13_Launcher()

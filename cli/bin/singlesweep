@@ -1,0 +1,16 @@
+jaw 0 0x00
+jaw 1 0x00
+jaw 2 0x6C
+jaw 3 0x01
+jaw 4 0x00
+jaw 5 0x06
+jaw 6 0x05
+jaw 7 0x07
+jaw 8 0x00
+jaw 9 0x00
+jaw 10 0x1
+fsweep -m 1999 -d 1 -n 1000 -s 90 -t 160 -p 0 -f single/tsweep/channel0
+fsweep -m 1999 -d 1 -n 1000 -s 90 -t 160 -p 1 -f single/tsweep/channel1
+fsweep -m 1999 -d 1 -n 1000 -s 90 -t 160 -p 2 -f single/tsweep/channel2
+fsweep -m 1999 -d 1 -n 1000 -s 90 -t 160 -p 3 -f single/tsweep/channel3
+quit

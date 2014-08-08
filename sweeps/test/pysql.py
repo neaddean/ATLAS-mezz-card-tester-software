@@ -7,12 +7,14 @@ import glob
 import re
 import argparse
 import sqlite3 as lite
+import getpass
 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("-f", help="name of data file w/o number", default = "tsweep/channel")
 parser.add_argument("-p", "--plot", help="plot sweep data flag", action="store_true",
                     default = False)
+parser.add_argument("-u", "--user", help="name of user", default = "default")
 args = parser.parse_args()
 should_plot = args.plot
 
@@ -74,6 +76,9 @@ else:
     for i in range(0, 24):
         popt_list.append(process_file(args.f+str(i)))
 
+# for i in range(len(popt_list)):
+#     popt_list[i] = np.append(popt_list[i], np.log(popt_list[i][0]))
+        
 popt_arr = np.array(popt_list)
 # make sure offsets are within 12 mV of each other
 # if not they are not, try to pick the outlier
@@ -90,17 +95,14 @@ if np.ptp(popt_arr, axis=0)[1] > 12:
 
 np.savetxt("stat_log.txt",popt_arr, fmt="%g", delimiter="\t", header="Ro\tVoff\tsigma")
 
-con = lite.connect('mezz.db')
+db_list = []
+for x in popt_list:
+    db_list.append(("dean", x[0], x[1], x[2], args.user))
 
+con = lite.connect('mezz.db')
 with con:
     cur = con.cursor()
-
-    cur.execute("DROP TABLE IF EXISTS Channels")
-    cur.execute("CREATE TABLE Channels (Id INTEGER PRIMARY KEY AUTOINCREMENT, Ro INT, Voff INT, sigma INT)")
-    cur.executemany("INSERT INTO Channels(Ro, Voff, sigma) VALUES (?, ?, ?)", popt_list)
+    cur.executemany("INSERT INTO Channels(Ro, Voff, sigma, user, user2) VALUES (?, ?, ?, ?, ?)", db_list)
 
 print "done"
-
-
-
 

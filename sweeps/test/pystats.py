@@ -73,6 +73,9 @@ else:
     for i in range(0, 24):
         popt_list.append(process_file(args.f+str(i)))
 
+for i in range(len(popt_list)):
+    popt_list[i] = np.append(popt_list[i], np.log(popt_list[i][0]))
+        
 popt_arr = np.array(popt_list)
 # make sure offsets are within 12 mV of each other
 # if not they are not, try to pick the outlier

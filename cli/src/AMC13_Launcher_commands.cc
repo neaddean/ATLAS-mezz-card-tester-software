@@ -1,6 +1,8 @@
 #include "AMC13_Launcher.hh"
 #include <cmath>
 
+#define save_dir ""
+
 void AMC13_Launcher::LoadCommandList()
 {
   AddCommand("help",&AMC13_Launcher::Help,"");
@@ -164,7 +166,7 @@ int AMC13_Launcher::tsweep_man(std::vector<std::string> strArg,
         channel = intArg[arg+1];
       else if(strArg[arg].compare("-f")==0)
 	{
-	  sprintf(file_name_buffer,"../../sweeps/%s", strArg[arg+1].c_str());
+	  sprintf(file_name_buffer,"%s%s", save_dir, strArg[arg+1].c_str());
 	  sweep_file = fopen(file_name_buffer, "w");
 	}
       else
@@ -345,7 +347,7 @@ int AMC13_Launcher::tsweep(std::vector<std::string> strArg,
         channel = intArg[arg+1];
       else if(strArg[arg].compare("-f")==0)
 	{
-	  sprintf(file_name_buffer,"../../sweeps/%s", strArg[arg+1].c_str());
+	  sprintf(file_name_buffer,"%s%s", save_dir, strArg[arg+1].c_str());
 	  sweep_file = fopen(file_name_buffer, "w");
 	  recording = true;
 	}
@@ -517,7 +519,7 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
         channel = intArg[arg+1];
       else if(strArg[arg].compare("-f")==0)
 	{
-	  sprintf(file_name_buffer,"../../sweeps/%s", strArg[arg+1].c_str());
+	  sprintf(file_name_buffer,"%s%s", save_dir, strArg[arg+1].c_str());
 	  sweep_file = fopen(file_name_buffer, "w");
 	  recording = true;
 	}
@@ -529,10 +531,24 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
 	  return 0;
 	}
     }
+  
+  if (recording)
+    fprintf(sweep_file,"#thr\thits\tfreq\twindow\terror\n");
+  
+  mezzTester->SetWindow(match_window);
+  mezzTester->Board.SetChannel(channel);
+  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0);
+  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0);
+  mezzTester->Board.SetASDReg(CHIP_MODE, 1);
+  mezzTester->Board.SetStrobePulsePeriod(0);
+  mezzTester->Board.SetChannelMask(0);
+  mezzTester->Board.SetAllDAC(0);
+  mezzTester->Board.UpdateBoard();
+  mezzTester->ResetTDC();
 
   if (recording)
     fprintf(sweep_file,
-	    "# Number of sweeps:%d\n"
+	    "# Number of swees:%d\n"
 	    "# Fast sweep mode\n"
 	    "# Match window:%d\n"
 	    "# Search window:%d\n"
@@ -548,19 +564,23 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
 	    mezzTester->Board.GetTDCReg(BUNCH_OFFSET),
 	    mezzTester->Board.GetTDCReg(COUNT_ROLLOVER),
 	    thresh_start, thresh_stop, thresh_delta, channel);
-  
-  if (recording)
-    fprintf(sweep_file,"#thr\thits\tfreq\twindow\terror\n");
-  
-  mezzTester->SetWindow(match_window);
-  mezzTester->Board.SetChannel(channel);
-  mezzTester->Board.SetASDReg(CAL_INJECT_MASK, 0);
-  mezzTester->Board.SetASDReg(CAL_INJ_CAPS, 0);
-  mezzTester->Board.SetStrobePulsePeriod(0);
-  mezzTester->Board.SetChannelMask(0);
-  mezzTester->Board.SetAllDAC(0);
-  mezzTester->Board.UpdateBoard();
-  mezzTester->ResetTDC();
+
+  printf("# Number of sweeps:%d\n"
+	 "# Fast sweep mode\n"
+	 "# Match window:%d\n"
+	 "# Search window:%d\n"
+	 "# Reject offset:%d\n"
+	 "# Bunch offset:%d\n"
+	 "# Coarse rollover:%d\n"
+	 "# Threshold: [%d, %d, %d]\n"
+	 "# Channel:%d\n",
+	 num_sweeps, 
+	 mezzTester->Board.GetTDCReg(MATCH_WINDOW), 
+	 mezzTester->Board.GetTDCReg(SEARCH_WINDOW),
+	 mezzTester->Board.GetTDCReg(REJECT_OFFSET),
+	 mezzTester->Board.GetTDCReg(BUNCH_OFFSET),
+	 mezzTester->Board.GetTDCReg(COUNT_ROLLOVER),
+	 thresh_start, thresh_stop, thresh_delta, channel);
 
   printf("Channel: %d\n", channel);
 
@@ -707,7 +727,7 @@ int AMC13_Launcher::dac_sweep(std::vector<std::string> strArg,
 	channel = intArg[arg+1];
       else if(strArg[arg].compare("-f")==0)
 	{
-	  sprintf(file_name_buffer, "../../sweeps/%s",strArg[arg+1].c_str());
+	  sprintf(file_name_buffer, "%s%s", save_dir, strArg[arg+1].c_str());
 	  dacfile = fopen(file_name_buffer, "w");
 	  fprintf(dacfile, "#num_sweeps:%d\n", num_sweeps);
 	  fprintf(dacfile, "#thresh\tdac\n");
@@ -838,7 +858,7 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
 	channel = intArg[arg+1];
       else if(strArg[arg].compare("-f")==0)
 	{
-	  sprintf(file_name_buffer, "../../sweeps/%s",strArg[arg+1].c_str());
+	  sprintf(file_name_buffer, "%s%s", save_dir, strArg[arg+1].c_str());
 	  dacfile = fopen(file_name_buffer, "w");
 	  fprintf(dacfile, "#num_sweeps:%d\n", num_sweeps);
 	  fprintf(dacfile, "#thresh\tdac\n");
