@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sys/stat.h>
 
 #include "AMC13_Launcher.hh"
 #include "AMC13_CLI.hh"
@@ -47,6 +48,14 @@ int main(int argc, char* argv[])
       it++)
     {
       cli.ProcessFile(*it);
+    }
+
+  // clear the tmp folder
+  system( "rm -rf /tmp/MezzTool.tmp");
+  if (mkdir("/tmp/MezzTool.tmp", S_IRWXU | S_IRWXG) != 0)
+    {
+      perror("Could not create /tmp/MezzTool.tmp : ");
+      return 1;
     }
 
 

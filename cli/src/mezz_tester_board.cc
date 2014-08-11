@@ -74,7 +74,7 @@ MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], const char*
 // Powers off the board and closes the serial port
 MezzTesterBoard::~MezzTesterBoard()
 {
-  Power(OFF);
+  //Power(OFF);
   serial.Close();
   printf("MezzTesterBoard Offline.\n");
 }
@@ -541,6 +541,10 @@ bool MezzTesterBoard::ASD_JTAG_test(bool verbose)
 
 bool MezzTesterBoard::ASD_TDC_test(bool verbose)
 {
+  FILE * logfile;
+  logfile =  fopen("/tmp/123444.log", "w");
+  fprintf(logfile, "HI DEAN");
+  fclose(logfile);
   int og_chanel_lower = GetASDReg(CHANNEL_LOWER);
   int og_chanel_upper = GetASDReg(CHANNEL_UPPER);
   const char * one_zero = "101010101010101010101010";

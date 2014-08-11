@@ -2,7 +2,7 @@
 
 def gen_script(mezzID):
     #default values
-    num_sweeps = 1000
+    num_sweeps = 500
     match_window = 1999
     thresh_start = 90
     thresh_stop = 160

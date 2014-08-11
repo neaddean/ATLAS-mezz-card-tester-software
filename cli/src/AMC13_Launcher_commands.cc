@@ -484,6 +484,7 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
   bool recording = false;
   int runhits;
   float rate;
+  bool verbose = false;
  
   if ((strArg.size()%2==1) && (strArg.size() > 2))
     {
@@ -502,7 +503,8 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
 	       "-s\tthreshold start (90)\n"
 	       "-t\tthreshold stop (160)\n"
 	       "-d\tthreshold delta (1)\n"
-	       "-f\tsave file in sweep folder \n");
+	       "-f\tsave file in sweep folder \n"
+	       "-v\tverbose (must give dummy argument)\n");
 	return 0;
       }
       else if(strArg[arg].compare("-n")==0)
@@ -517,6 +519,8 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
 	thresh_delta = intArg[arg+1];
       else if(strArg[arg].compare("-p")==0)
         channel = intArg[arg+1];
+      else if(strArg[arg].compare("-v")==0)
+        verbose = true;
       else if(strArg[arg].compare("-f")==0)
 	{
 	  sprintf(file_name_buffer,"%s%s", save_dir, strArg[arg+1].c_str());
@@ -565,24 +569,25 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
 	    mezzTester->Board.GetTDCReg(COUNT_ROLLOVER),
 	    thresh_start, thresh_stop, thresh_delta, channel);
 
-  printf("# Number of sweeps:%d\n"
-	 "# Fast sweep mode\n"
-	 "# Match window:%d\n"
-	 "# Search window:%d\n"
-	 "# Reject offset:%d\n"
-	 "# Bunch offset:%d\n"
-	 "# Coarse rollover:%d\n"
-	 "# Threshold: [%d, %d, %d]\n"
-	 "# Channel:%d\n",
-	 num_sweeps, 
-	 mezzTester->Board.GetTDCReg(MATCH_WINDOW), 
-	 mezzTester->Board.GetTDCReg(SEARCH_WINDOW),
-	 mezzTester->Board.GetTDCReg(REJECT_OFFSET),
-	 mezzTester->Board.GetTDCReg(BUNCH_OFFSET),
-	 mezzTester->Board.GetTDCReg(COUNT_ROLLOVER),
-	 thresh_start, thresh_stop, thresh_delta, channel);
+  if (verbose)
+    printf("# Number of sweeps:%d\n"
+	   "# Fast sweep mode\n"
+	   "# Match window:%d\n"
+	   "# Search window:%d\n"
+	   "# Reject offset:%d\n"
+	   "# Bunch offset:%d\n"
+	   "# Coarse rollover:%d\n"
+	   "# Threshold: [%d, %d, %d]\n"
+	   "# Channel:%d\n",
+	   num_sweeps, 
+	   mezzTester->Board.GetTDCReg(MATCH_WINDOW), 
+	   mezzTester->Board.GetTDCReg(SEARCH_WINDOW),
+	   mezzTester->Board.GetTDCReg(REJECT_OFFSET),
+	   mezzTester->Board.GetTDCReg(BUNCH_OFFSET),
+	   mezzTester->Board.GetTDCReg(COUNT_ROLLOVER),
+	   thresh_start, thresh_stop, thresh_delta, channel);
 
-  printf("Channel: %d\n", channel);
+  printf("Channel %d threshold sweep\n", channel);
 
   int match_og = match_window;
   char inbuf[25];
@@ -646,13 +651,16 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
 	  else
 	    fprintf(sweep_file,"0\n");
 	}
-
-      printf("%0d\t%0d\t%g\t%d\t", 2*(thresh-127), runhits, 
-      	     rate, match_window);
-      if(runhits != 0)
-      	printf("%g\n", sqrt(runhits)/runhits*rate);
-      else
-      	printf("0\n");
+      
+      if (verbose)
+	{
+	  printf("%0d\t%0d\t%g\t%d\t", 2*(thresh-127), runhits, 
+		 rate, match_window);
+	  if(runhits != 0)
+	    printf("%g\n", sqrt(runhits)/runhits*rate);
+	  else
+	    printf("0\n");
+	}
 
       match_window = match_og;
       
@@ -873,7 +881,7 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
 	}
     }
   
-  printf("Channel: %d\t", channel);
+  printf("Channel dac sweep: %d\t", channel);
   //printf("thresh\tdac\n");
   
   mezzTester->Board.SetHitPeriod(hit_period);
@@ -1185,6 +1193,7 @@ int AMC13_Launcher::jtag_test(std::vector<std::string> strArg,
   if (intArg.size() > 0)
     verbose = true;
 
+  puts("------------------------------------------------------");
   puts("Testing JTAG");
 
   if (mezzTester->Board.TDC_JTAG_test(verbose))
@@ -1268,6 +1277,7 @@ int AMC13_Launcher::strobe_test(std::vector<std::string> strArg,
   mezzTester->Board.UpdateBoard();
   mezzTester->ResetTDC();
 
+  puts("------------------------------------------------------");
   puts("Testing ASD strobe");
 
   int runhits;
@@ -1353,6 +1363,7 @@ int AMC13_Launcher::trig_test(std::vector<std::string> strArg,
   mezzTester->Board.SetAllDAC(0);
   mezzTester->Board.UpdateBoard();
 
+  puts("------------------------------------------------------");
   puts("Testing trigger resets");
 
   int firstID, lastID;
