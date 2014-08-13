@@ -74,7 +74,7 @@ MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], const char*
 // Powers off the board and closes the serial port
 MezzTesterBoard::~MezzTesterBoard()
 {
-  //Power(OFF);
+  Power(OFF);
   serial.Close();
   printf("MezzTesterBoard Offline.\n");
 }
@@ -456,7 +456,7 @@ bool MezzTesterBoard::TDC_JTAG_test(bool verbose)
 	break;
     }
   // we expect "0000 0111 ...." to be read back
-  if (i == 7) // should be 6
+  if (i == 6) 
     {
       fprintf(logfile, "pass\n");
       fclose(logfile);
@@ -549,7 +549,7 @@ bool MezzTesterBoard::ASD_JTAG_test(bool verbose)
       printf("ASD length is %d\n", asd_length);
       puts(asd_buf);
     }
-  if (asd_length == 161) //160
+  if (asd_length == 160)
     {
       fprintf(logfile, "pass\n");
       fclose(logfile);
@@ -573,7 +573,7 @@ bool MezzTesterBoard::ASD_TDC_test(bool verbose)
   fprintf(logfile, "ASD_TDC_test\t");
   int og_chanel_lower = GetASDReg(CHANNEL_LOWER);
   int og_chanel_upper = GetASDReg(CHANNEL_UPPER);
-  const char * one_zero = "001010101010101010101010"; // fix the first digit
+  const char * one_zero = "101010101010101010101010"; 
   const char * zero_one = "010101010101010101010101";
   char one_zero_buf[64];
   char zero_one_buf[64];
