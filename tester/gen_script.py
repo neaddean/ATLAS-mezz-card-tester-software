@@ -1,14 +1,14 @@
 #! /bin/python2
 
-def gen_script(mezzID):
+def gen_script():
     #default values
     num_sweeps = 500
     match_window = 1999
     thresh_start = 90
-    thresh_stop = 160
-    thresh_delta = 1
+    thresh_stop = 165
+    thresh_delta = 2
 
-    filename = "mezz_data/" + mezzID + "/tsweep/channel"
+    filename = "tsweep"
 
     sweep_params = {"-n" : num_sweeps,      "-d" : thresh_delta, "-m" : match_window,
                     "-s" : thresh_start,    "-t" : thresh_stop}
@@ -33,7 +33,7 @@ def gen_script(mezzID):
     dac_dac_delta = 400
     dac_thresh = 160
 
-    dac_filename = "mezz_data/" + mezzID + "/dsweep/dac"
+    dac_filename = "dsweep"
 
     for i in range(0, 24, 1):
         mystr = ''
@@ -48,3 +48,6 @@ def gen_script(mezzID):
 
     print >>outfile, "quit"
     outfile.close()
+
+if __name__ == "__main__":
+    gen_script()

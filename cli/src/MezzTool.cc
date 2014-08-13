@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
       cli.ProcessFile(*it);
     }
 
-  // clear the tmp folder
+  // clear and recreate the tmp folder
   system( "rm -rf /tmp/MezzTool.tmp");
   if (mkdir("/tmp/MezzTool.tmp", S_IRWXU | S_IRWXG) != 0)
     {

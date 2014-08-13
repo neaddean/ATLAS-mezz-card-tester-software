@@ -55,14 +55,14 @@ def process_threshold_file(filename):
     ax.legend()
     return fig, popt, mydata
 
-def parse_tsweep(mezzID):
+def parse_tsweep(mezzID=None):
     popt_list = []
     mydata_list = []
 # only save plots if we are plotting
     if should_plot:
         pdf_file = PdfPages('tsweep_%s.pdf'%mezzID)
         for i in range(0, 24):
-            temp_fig, temp_popt, temp_mydata = process_threshold_file("mezz_data/"+mezzID+"/tsweep/channel"+str(i))
+            temp_fig, temp_popt, temp_mydata = process_threshold_file("/tmp/MezzTool.tmp/tsweep%d" % i)
             pdf_file.savefig(temp_fig)
             plt.close(temp_fig)
             popt_list.append(list(temp_popt))
@@ -70,7 +70,7 @@ def parse_tsweep(mezzID):
         pdf_file.close()
     else:
         for i in range(0, 24):
-            temp_popt, temp_mydata = process_threshold_file("mezz_data/"+mezzID+"/tsweep/channel"+str(i))
+            temp_popt, temp_mydata = process_threshold_file("/tmp/MezzTool.tmp/tsweep%d" % i)
             popt_list.append(list(temp_popt))
             mydata_list.append(list(temp_mydata))
     return popt_list, mydata_list
@@ -123,14 +123,14 @@ def process_dac_file(filename):
     
     return fig, popt, mydata
 
-def parse_dsweep(mezzID):
+def parse_dsweep(mezzID=None):
     popt_list = []
     mydata_list = []
     # only save plots if we are plotting
     if should_plot:
         pdf_file = PdfPages('dsweep_%s.pdf'%mezzID)
         for i in range(0, 24):
-            temp_fig, temp_popt, temp_mydata = process_dac_file("mezz_data/"+mezzID+"/dsweep/dac"+str(i))
+            temp_fig, temp_popt, temp_mydata = process_dac_file("/tmp/MezzTool.tmp/dsweep%d" % i)
             pdf_file.savefig(temp_fig)
             plt.close(temp_fig)
             popt_list.append(list(temp_popt))
@@ -138,7 +138,7 @@ def parse_dsweep(mezzID):
         pdf_file.close()
     else:
         for i in range(0, 24):
-            temp_popt, temp_mydata = process_dac_file("mezz_data/"+mezzID+"/dsweep/dac"+str(i))
+            temp_popt, temp_mydata = process_dac_file("/tmp/MezzTool.tmp/dsweep%d" % i)
             popt_list.append(list(temp_popt))
             mydata_list.append(list(temp_mydata))
     return popt_list, mydata_list

@@ -429,6 +429,9 @@ void MezzTesterBoard::SetChannel(int set_channel)
 
 bool MezzTesterBoard::TDC_JTAG_test(bool verbose)
 {
+  FILE * logfile = NULL;
+  logfile = fopen("/tmp/MezzTool.tmp/mezztool.log", "a");
+  fprintf(logfile, "TDC_JTAG_test\t");
   char inbuf[32];
   // enter test-logic-reset
   serial.Writeln("jd 0000");
@@ -453,16 +456,25 @@ bool MezzTesterBoard::TDC_JTAG_test(bool verbose)
 	break;
     }
   // we expect "0000 0111 ...." to be read back
-  if (i == 6)
-    return true;
+  if (i == 7) // should be 6
+    {
+      fprintf(logfile, "pass\n");
+      fclose(logfile);
+      return true;
+    }
   // else failed
+  fprintf(logfile, "fail\t\"TDC ir-reg: %s\"\n", inbuf);
+  fclose(logfile);
   if (!verbose)  
-    printf("TDC ID: %s\n", inbuf);
+    printf("TDC ir-reg : %s\n", inbuf);
   return false;
 }
 
 bool MezzTesterBoard::TDC_ID_test(bool verbose)
 {
+  FILE * logfile = NULL;
+  logfile = fopen("/tmp/MezzTool.tmp/mezztool.log", "a");
+  fprintf(logfile, "TDC_ID_test\t");
   const char * TDC_ID = "1000 1100 0000 1010 0001 1101 0001 1100";
   char inbuf[64];
   // enter test-logic-reset
@@ -480,8 +492,14 @@ bool MezzTesterBoard::TDC_ID_test(bool verbose)
   if(verbose)
     printf("TDC ID: %s\n", inbuf);
   if (strncmp(inbuf, TDC_ID, 39)==0)
-    return true;
+    {
+      fprintf(logfile, "pass\n");
+      fclose(logfile);
+      return true;
+    }
   // else failed
+  fprintf(logfile, "fail\t\"TDC ID: %s\"\n", inbuf);
+  fclose(logfile);
   if (!verbose)
     printf("TDC ID: %s\n", inbuf);
   return false;
@@ -489,6 +507,9 @@ bool MezzTesterBoard::TDC_ID_test(bool verbose)
 
 bool MezzTesterBoard::ASD_JTAG_test(bool verbose)
 {
+  FILE * logfile = NULL;
+  logfile = fopen("/tmp/MezzTool.tmp/mezztool.log", "a");
+  fprintf(logfile, "ASD_JTAG_test\t");
   int i;
   char asd_buf[256];
   memset(asd_buf, '\0', 256);
@@ -528,9 +549,15 @@ bool MezzTesterBoard::ASD_JTAG_test(bool verbose)
       printf("ASD length is %d\n", asd_length);
       puts(asd_buf);
     }
-  if (asd_length == 160)
-    return true;
+  if (asd_length == 161) //160
+    {
+      fprintf(logfile, "pass\n");
+      fclose(logfile);
+      return true;
+    }
   // else failed
+  fprintf(logfile, "fail\t\"ASD length is %d\"\n", asd_length);
+  fclose(logfile);
   if (!verbose)
     {
       printf("ASD length is %d\n", asd_length);
@@ -541,13 +568,12 @@ bool MezzTesterBoard::ASD_JTAG_test(bool verbose)
 
 bool MezzTesterBoard::ASD_TDC_test(bool verbose)
 {
-  FILE * logfile;
-  logfile =  fopen("/tmp/123444.log", "w");
-  fprintf(logfile, "HI DEAN");
-  fclose(logfile);
+  FILE * logfile = NULL;
+  logfile = fopen("/tmp/MezzTool.tmp/mezztool.log", "a");
+  fprintf(logfile, "ASD_TDC_test\t");
   int og_chanel_lower = GetASDReg(CHANNEL_LOWER);
   int og_chanel_upper = GetASDReg(CHANNEL_UPPER);
-  const char * one_zero = "101010101010101010101010";
+  const char * one_zero = "001010101010101010101010"; // fix the first digit
   const char * zero_one = "010101010101010101010101";
   char one_zero_buf[64];
   char zero_one_buf[64];
@@ -631,7 +657,16 @@ bool MezzTesterBoard::ASD_TDC_test(bool verbose)
   UpdateASD();
 
   if (!failed)
-    return true;
+    {
+      fprintf(logfile, "pass\n");
+      fclose(logfile);
+      return true;
+    }
+  fprintf(logfile, "fail\t"
+	  "\"'1010...' test result: %.24s\"\t"
+	  "\"'0101...' test result: %.24s\"\n",
+	  one_zero_buf, zero_one_buf);
+  fclose(logfile);
   // else failed
   if (!verbose)
     {

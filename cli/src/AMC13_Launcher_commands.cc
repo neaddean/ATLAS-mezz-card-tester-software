@@ -1,7 +1,7 @@
 #include "AMC13_Launcher.hh"
 #include <cmath>
 
-#define save_dir ""
+#define save_dir "/tmp/MezzTool.tmp/"
 
 void AMC13_Launcher::LoadCommandList()
 {
@@ -636,9 +636,9 @@ int AMC13_Launcher::fsweep(std::vector<std::string> strArg,
 		 token & 0x00FF);
 	}
       else if (inbuf[0]=='N')
-	  runhits = token;
+	runhits = token;
       else
-	  printf("Error: invalid repsonse from \"%s\": %s\n", outbuf, inbuf);
+	printf("Error: invalid repsonse from \"%s\": %s\n", outbuf, inbuf);
 
       rate = (float)runhits/(TDC_CLK*(match_window+1)*num_sweeps);
 
@@ -927,9 +927,9 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
 		 token & 0x00FF);
 	}
       else if (inbuf[0]=='N')
-	  runhits = token;
+	runhits = token;
       else
-	  printf("Error: invalid repsonse from \"ts\": %s\n", inbuf);
+	printf("Error: invalid repsonse from \"ts\": %s\n", inbuf);
       
       if (runhits > 0)
 	{
@@ -1234,6 +1234,11 @@ int AMC13_Launcher::strobe_test(std::vector<std::string> strArg,
   int thresh = 0;
   int strobe_period = 99; 
 
+  bool pass = true;
+  FILE * logfile = NULL;
+  logfile = fopen("/tmp/MezzTool.tmp/mezztool.log", "a");
+  fprintf(logfile, "strobe_test\t");
+
   if ((strArg.size()%2==1) && (strArg.size() > 2))
     {
       printf("Error: unmatched arguments\n");
@@ -1287,41 +1292,52 @@ int AMC13_Launcher::strobe_test(std::vector<std::string> strArg,
   int expected_hits = (int) floor ( (match_window + 1) / (4 * (strobe_period + 1)) * num_sweeps );
   printf("Expected hits: %d\n", expected_hits);
 
-    for (int chan=0; chan < 24; chan++)
-      {
-	mezzTester->Board.SetChannel(chan);
-	mezzTester->Board.UpdateTDC();
-	runhits = 0;
+  for (int chan=0; chan < 24; chan++)
+    {
+      mezzTester->Board.SetChannel(chan);
+      mezzTester->Board.UpdateTDC();
+      runhits = 0;
 
-	printf("Channel %d....", chan);
+      printf("Channel %d....", chan);
 
-	sprintf(outbuf, "ts %04X 4", num_sweeps);
-	mezzTester->Board.serial.Writeln(outbuf,false);
-	mezzTester->Board.serial.Readln(inbuf, 25);
-	token = strtol(inbuf+1, NULL, 16);
-	if (inbuf[0]=='E')
-	  {
-	    mezzTester->printTDCError(token);
-	    continue; 
-	  }
-	else if (inbuf[0]=='I')
-	  {
-	    printf("Error: event ID mismatch (4 LSBits)\n"
-		   "Header: %d Trailer: %d\n", 
-		   (token & 0xFF00) >> 8,
-		   token & 0x00FF);
-	  }
-	else if (inbuf[0]=='N')
-	  runhits = token;
-	else
-	  printf("Error: invalid repsonse from \"ts\": %s\n", inbuf);
+      sprintf(outbuf, "ts %04X 4", num_sweeps);
+      mezzTester->Board.serial.Writeln(outbuf,false);
+      mezzTester->Board.serial.Readln(inbuf, 25);
+      token = strtol(inbuf+1, NULL, 16);
+      if (inbuf[0]=='E')
+	{
+	  mezzTester->printTDCError(token);
+	  continue; 
+	}
+      else if (inbuf[0]=='I')
+	{
+	  printf("Error: event ID mismatch (4 LSBits)\n"
+		 "Header: %d Trailer: %d\n", 
+		 (token & 0xFF00) >> 8,
+		 token & 0x00FF);
+	}
+      else if (inbuf[0]=='N')
+	runhits = token;
+      else
+	printf("Error: invalid repsonse from \"ts\": %s\n", inbuf);
 
 
-	if (runhits != expected_hits)
+      if (runhits != expected_hits)
+	{
 	  printf("FAILED! Expected hits: %d Counted hits: %d\n", expected_hits, runhits);
-	else
-	  printf("Passed!\n");
-      } // end for loop
+	  if (pass)
+	    fprintf(logfile, "fail");
+	  pass = false;
+	  fprintf(logfile, "\t%d", chan);
+	}
+      else
+	printf("Passed!\n");
+    } // end for loop
+  if (pass)
+    fprintf(logfile, "pass\n");
+  else 
+    fprintf(logfile, "\n");
+  fclose(logfile);
   return 0;
 }
 
@@ -1329,6 +1345,10 @@ int AMC13_Launcher::trig_test(std::vector<std::string> strArg,
 			      std::vector<uint64_t> intArg)
 {
   int num_sweeps = 3;
+  bool pass = true;
+  FILE * logfile = NULL;
+  logfile = fopen("/tmp/MezzTool.tmp/mezztool.log", "a");
+  fprintf(logfile, "trig_test\t");
 
   if ((strArg.size()%2==1) && (strArg.size() > 2))
     {
@@ -1393,10 +1413,22 @@ int AMC13_Launcher::trig_test(std::vector<std::string> strArg,
       lastID = mezzTester->HitReadout.eventID;
 
       if ((firstID != 0) || (lastID != num_sweeps))
-	printf("FAILED!\n\tfirst ID (should be 0): %d\n\tlast ID (should be %d): %d\n",
-	       firstID, num_sweeps, lastID);
+	{
+	  printf("FAILED!\n\tfirst ID (should be 0): %d\n\tlast ID (should be %d): %d\n",
+		 firstID, num_sweeps, lastID);
+	  if (pass)
+	    fprintf(logfile, "fail");
+	  pass = false;
+	  fprintf(logfile, "\t%d", chan);
+	}
       else
 	printf("passed!\n");
     }
+  if (pass)
+    fprintf(logfile, "pass\n");
+  else 
+    fprintf(logfile, "\n");
+  fclose(logfile);
+
   return 0;
 }
