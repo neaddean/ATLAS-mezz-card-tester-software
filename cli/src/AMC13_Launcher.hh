@@ -76,5 +76,7 @@ private:
   int strobe_test(std::vector<std::string>,std::vector<uint64_t>);
   int trig_test(std::vector<std::string>,std::vector<uint64_t>);
   int TDC_status(std::vector<std::string>,std::vector<uint64_t>);
+  int a(std::vector<std::string>,std::vector<uint64_t>);
+  int gain_set(std::vector<std::string>,std::vector<uint64_t>);
 };
 #endif

@@ -2,7 +2,7 @@ clear
 reset
 set key off
 
-if (!exists("filename")) filename='longsweep0'
+if (!exists("filename")) filename='tsweep1'
 
 set xlabel "Threshold setting (mv)"
 set ylabel "Hit rate (hz)"

@@ -18,7 +18,7 @@ MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
   /*               0      1      2      3      4      5      6      7      8 */
   //int TDC[] = {0x000,     0,  1008,  1000,  3024,     0,  3064,     0,  4095,
   // /*               0      1      2      3      4      5      6      7      8 */
-  	       0xC0A, 0xAF1, 0xF19, 0x1FF, 0x000, 0x000};		
+  	       0xF0A, 0xAF1, 0xF19, 0x1FF, 0x000, 0x000};		
   /*               9      A      B      C      D      E */ 
   int DAC[] = {0xFFF, 0xFFF, 0xFFF, 0xFFF};
 
@@ -34,6 +34,7 @@ MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
   StrobePulsePeriod = 0x01;
   HitPeriod = 0x9B;
   EnabledChannel = ALL_OFF;
+  gain_set = 0;
 
   serial.SetDevice(device_name);
   if(!serial.Open())
@@ -45,8 +46,8 @@ MezzTesterBoard::MezzTesterBoard(const char* device_name, int ChannelMask)
 }
 
 // This constructor takes the registers as parameters to override the default settings
-MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], const char* device_name, 		
-        int ChannelMask)
+MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4],
+				 const char* device_name, int ChannelMask)
 {
   int i;
   for (i = 0; i<15; i++)
@@ -60,6 +61,7 @@ MezzTesterBoard::MezzTesterBoard(int * TDC, int ASD[11], int DAC[4], const char*
   StrobePulsePeriod = 0x01; 
   HitPeriod = 0x9B;
   EnabledChannel = ALL_OFF;
+  gain_set = 0;
 
 
   serial.SetDevice(device_name);
@@ -185,6 +187,10 @@ void MezzTesterBoard::UpdateBoard()
   UpdateASD();
   UpdateDAC();
   UpdateInjector();
+  
+  char outbuf[20];
+  sprintf(outbuf, "gain_set %02X", gain_set);
+  serial.Writeln(outbuf);
 }
 
 // update only relevant pulse injector registers
@@ -259,6 +265,7 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
 	break;
       readsize++;
     }
+  
   // check that packet began with header
   if ((readbuf[0] & 0xA0000000) != 0xA0000000)
     {
@@ -277,6 +284,7 @@ int MezzTesterBoard::ReadFIFO(HitReadout_s * HitReadout)
     expected_read--;
   // must account for the trailer because quantity starts at 1, not 0
   readsize++;
+  
   if (expected_read != readsize)
     {
       printf("ERROR: fifo read size mismatch error, expected %d but read %d\n", 
@@ -426,6 +434,41 @@ void MezzTesterBoard::SetChannel(int set_channel)
   UpdateBoard();
 }
 
+void MezzTesterBoard::gainSet(int channel, int multiplier)
+{
+  if (channel == DIGITAL_CUR)
+    {
+      gain_set &= 0xF0;
+      gain_set |= multiplier;
+    }
+  else if (channel == ANALOG_CUR)
+    {
+      gain_set &= 0x0F;
+      gain_set |= (multiplier << 4);
+    }
+}
+
+void MezzTesterBoard::ReadADC(ADCReadout_s * adcRead)
+{
+  char buffer[20];
+  unsigned int adcbuf[8];
+  
+  // read adc into a buffer
+  serial.Writeln(" ");
+  serial.Writeln("a", false);
+  // printf("-----ASCII : HEX-----\n");
+  for (int i=0; i<8; i++)
+    {
+      serial.Readln(buffer, 20);
+      adcbuf[i] = strtoul(buffer+1, NULL, 16);
+      // printf("   %d : %s : %04X\n", i, buffer, statusbuf[i]);
+    }
+  adcRead->temperature = (adcbuf[1] / 4095.0f * 5.0f) / 0.010f - 50.0f;
+  adcRead->analogVoltage = adcbuf[2] / 4095.0f * 5.0f;
+  adcRead->digitalVoltage = adcbuf[3] / 4095.0f * 5.0f;
+  adcRead->analogCurrent = adcbuf[4] / 4095.0f * 5.0f / 25.0f / 0.1f;
+  adcRead->digitalCurrent = adcbuf[5] / 4095.0f * 5.0f / 25.0f / 0.1f;
+}
 
 bool MezzTesterBoard::TDC_JTAG_test(bool verbose)
 {

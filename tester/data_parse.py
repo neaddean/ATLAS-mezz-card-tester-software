@@ -37,6 +37,7 @@ def process_threshold_file(filename):
     ax.errorbar(mydata[0], mydata[2], yerr=mydata[4], xlolims=True,
                 fmt="g+", ms=10, mew=1.5, label='data')
     ax.axis([-60, 50, 1e2, 3e7])
+    
     ax.set_yscale("log", nonposy="clip")
     ax.set_xlabel("Threshold setting $mV$", fontsize = 18)
     ax.set_ylabel("Hit rate $Hz$", fontsize =18)
@@ -81,14 +82,17 @@ def process_dac_file(filename):
     mydata = np.loadtxt(open(filename,"r"), delimiter="\t", unpack=True)
     try:
         thresh = mydata[0]/2+127
-        dac = mydata[1]*2.5/4095
+        dac = mydata[1]/3095*3.3
     except:
         thresh = [0,1]
         dac = [1, 2]
 
     # Linear regression using stats.linregress
     # m_fit, b_fit, r, p, stderr = stats.linregress(dac,thresh)
-    popt = stats.linregress(dac,thresh)
+    try:
+        popt = stats.linregress(thresh,dac)
+    except:
+        popt = 0, 0, 0, 0, 0
     #get rid of p
     popt = popt[0], popt[1], popt[2], popt[4]
     # if we aren't plotting, then end here
@@ -100,11 +104,11 @@ def process_dac_file(filename):
     ax = fig.add_subplot(111)
 
     # plot the fit
-    fit=polyval([popt[0], popt[1]],dac)
-    ax.plot(dac,fit,'bs-', ms=4)
+    fit=polyval([popt[0], popt[1]],thresh)
+    ax.plot(thresh,fit,'b-', ms=4)
 
     #plot original data (over fit)
-    ax.plot(dac,thresh,'r.')
+    ax.plot(thresh,dac,'r.')
 
     # text box with fit parameters
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.7)
@@ -117,9 +121,9 @@ def process_dac_file(filename):
     #matplotlib ploting
     ax.set_title('Dac sweep on channel '+ re.findall('\d+',filename)[-1],
                  fontsize=22)
-    ax.set_xlabel("Dac setting (out of 0xFFF)")
-    ax.set_ylabel("ASD Threshold setting")
-    ax.legend(['data', 'fit'], loc=4)
+    ax.set_xlabel("ASD Threshold setting")
+    ax.set_ylabel("Dac setting (V)")
+    ax.legend(['fit', 'data'], loc=4)
     
     return fig, popt, mydata
 

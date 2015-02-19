@@ -2,10 +2,11 @@ clear
 reset
 set key left
 
+if (!exists("filename")) filename='dean'
+
 set terminal pdf
 set output filename.'.pdf'
 
-if (!exists("filename")) filename='dac.txt'
 
 f1(x) = m*x+b
 m = .75; b = 120;

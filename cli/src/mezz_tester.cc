@@ -65,6 +65,11 @@ int MezzTester::getReadout(int maskflags)
   return ret;
 }
 
+void MezzTester::getADC()
+{
+  Board.ReadADC(&ADCRead);
+}
+
 
 void MezzTester::printTDCError(int errmask, int mask)
 {
@@ -174,7 +179,7 @@ void MezzTester::printTDCHits(int maskflags)
 
 void MezzTester::saveHits()
 {
-  if (HitReadout.numHits==0)
+  if (HitReadout.numHits==0 || !shouldSaveHits)
     return;
   for (int i = 0; i < HitReadout.numHits; i++)
     {

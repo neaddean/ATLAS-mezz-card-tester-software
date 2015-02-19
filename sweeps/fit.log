@@ -1056,3 +1056,141 @@ correlation matrix of the fit parameters:
                m      b      
 m               1.000 
 b              -0.862  1.000 
+
+
+*******************************************************************************
+Tue Feb 17 15:45:11 2015
+
+
+FIT:    data read from filename using ($2*2.5/4095):($1)
+        format = x:z
+        #datapoints = 85
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f1(x)
+fitted parameters initialized with current variable values
+
+
+
+ Iteration 0
+ WSSR        : 424156            delta(WSSR)/WSSR   : 0
+ delta(WSSR) : 0                 limit for stopping : 1e-05
+ lambda	  : 1.15494
+
+initial set of free parameter values
+
+m               = 0.75
+b               = 120
+
+After 4 iterations the fit converged.
+final sum of squares of residuals : 4755.99
+rel. change during last iteration : -1.66371e-14
+
+degrees of freedom    (FIT_NDF)                        : 83
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 7.56975
+variance of residuals (reduced chisquare) = WSSR/ndf   : 57.3011
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+m               = 135.15           +/- 2.288        (1.693%)
+b               = 4.33638          +/- 2.955        (68.14%)
+
+
+correlation matrix of the fit parameters:
+
+               m      b      
+m               1.000 
+b              -0.961  1.000 
+
+
+*******************************************************************************
+Tue Feb 17 15:45:59 2015
+
+
+FIT:    data read from filename using ($2*2.5/4095):($1)
+        format = x:z
+        #datapoints = 85
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f1(x)
+fitted parameters initialized with current variable values
+
+
+
+ Iteration 0
+ WSSR        : 424156            delta(WSSR)/WSSR   : 0
+ delta(WSSR) : 0                 limit for stopping : 1e-05
+ lambda	  : 1.15494
+
+initial set of free parameter values
+
+m               = 0.75
+b               = 120
+
+After 4 iterations the fit converged.
+final sum of squares of residuals : 4755.99
+rel. change during last iteration : -1.66371e-14
+
+degrees of freedom    (FIT_NDF)                        : 83
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 7.56975
+variance of residuals (reduced chisquare) = WSSR/ndf   : 57.3011
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+m               = 135.15           +/- 2.288        (1.693%)
+b               = 4.33638          +/- 2.955        (68.14%)
+
+
+correlation matrix of the fit parameters:
+
+               m      b      
+m               1.000 
+b              -0.961  1.000 
+
+
+*******************************************************************************
+Tue Feb 17 15:46:18 2015
+
+
+FIT:    data read from filename using ($2*2.5/4095):($1)
+        format = x:z
+        #datapoints = 85
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f1(x)
+fitted parameters initialized with current variable values
+
+
+
+ Iteration 0
+ WSSR        : 424156            delta(WSSR)/WSSR   : 0
+ delta(WSSR) : 0                 limit for stopping : 1e-05
+ lambda	  : 1.15494
+
+initial set of free parameter values
+
+m               = 0.75
+b               = 120
+
+After 4 iterations the fit converged.
+final sum of squares of residuals : 4755.99
+rel. change during last iteration : -1.66371e-14
+
+degrees of freedom    (FIT_NDF)                        : 83
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 7.56975
+variance of residuals (reduced chisquare) = WSSR/ndf   : 57.3011
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+m               = 135.15           +/- 2.288        (1.693%)
+b               = 4.33638          +/- 2.955        (68.14%)
+
+
+correlation matrix of the fit parameters:
+
+               m      b      
+m               1.000 
+b              -0.961  1.000 

@@ -18,6 +18,7 @@ class MezzTester
   void printTDCStatus(bool printstatus = false);
   void printTDCHits(int maskflags = 0);
   int  getReadout(int maskflags = 0);
+  void getADC();
   int  getTotalHits() {return totalhits;}
   void resetTotalHits() {totalhits = 0;}
   HitReadout_s * retReadout() {return &(HitReadout);} 
@@ -28,6 +29,7 @@ class MezzTester
   MezzTesterBoard Board;
   TDCStatus_s TDCStatus;
   HitReadout_s HitReadout;
+  ADCReadout_s ADCRead;
   int totalhits;
   bool shouldSaveHits;
 

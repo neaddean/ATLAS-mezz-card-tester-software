@@ -42,6 +42,8 @@ void AMC13_Launcher::LoadCommandList()
   AddCommand("strobe_test",&AMC13_Launcher::strobe_test,"perform strobe test on all channels");
   AddCommand("trig_test",&AMC13_Launcher::trig_test,"perform trigger/reset test on all channels");
   AddCommand("jts",&AMC13_Launcher::TDC_status,"print the status of the tdc");
+  AddCommand("a",&AMC13_Launcher::a,"readout adc values");
+  AddCommand("gain_set",&AMC13_Launcher::gain_set,"set gains of current sense amps");
 }
 
 int AMC13_Launcher::Quit(std::vector<std::string>,
@@ -82,6 +84,7 @@ int AMC13_Launcher::cli(std::vector<std::string> strArg,
   for(size_t iArg = 0; iArg < strArg.size();iArg++)
     {
       mezzTester->Board.serial.Write(strArg[iArg].c_str());
+      mezzTester->Board.serial.Write(" ");
     }
   // false argument means do not read entire line back
   mezzTester->Board.serial.Writeln("", false);
@@ -709,6 +712,7 @@ int AMC13_Launcher::dac_sweep(std::vector<std::string> strArg,
 	       "-t\tthreshold initial (180)\n"
 	       "-s\tthreshold step (1)\n"
 	       "-d\tdac initial (0)\n"
+	       "-e\tdac stop (255)\n"
 	       "-x\tdac step (50)\n"
 	       "-f\tsave file in sweep folder(dac.txt)\n");
 	return 0;
@@ -792,7 +796,7 @@ int AMC13_Launcher::dac_sweep(std::vector<std::string> strArg,
 	fprintf(dacfile, "%d\t%d\n", 2*(thresh-127), dac);
       printf("%d\t%d\n", thresh, dac);
       dac += dac_delta;
-      if (dac > 4095)
+      if (dac > 3095)
 	{
 	  printf("Error: dac = %d, value to high\n", dac);
 	  break;
@@ -807,17 +811,18 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
 			       std::vector<uint64_t> intArg)
 {
   char file_name_buffer[100];
-  int num_sweeps = 50;
+  int num_sweeps = 30;
   int match_window = 1999;
-  int thresh = 170;
+  int thresh = 170; // 170
   int thresh_delta = 1;
-  int thresh_stop = 255;
-  int dac = 0;
-  int dac_delta = 50;
+  int thresh_stop = 255; // 255
+  int dac = 1000;
+  int dac_delta = 20;
   int channel = 0;
   int channelmask = 1;
   int hit_period = 100;
   bool recording = false;
+  bool verbose = false;
   
   FILE * dacfile = NULL;
 
@@ -837,10 +842,12 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
 	       "-p\tchannel mask (1)\n"
 	       "-c\tchannel (0)\n"
 	       "-m\tmatch window (1999)\n"
-	       "-t\tthreshold initial (180)\n"
+	       "-t\tthreshold initial (170)\n" // 170
+	       "-e\tthreshold stop (255)\n" // 255
 	       "-s\tthreshold step (1)\n"
-	       "-d\tdac initial (0)\n"
-	       "-x\tdac step (50)\n"
+	       "-d\tdac initial (1000)\n"
+	       "-x\tdac step (20)\n"
+	       "-v\tverbose mode (off)\n"
 	       "-f\tsave file in sweep folder(dac.txt)\n");
 	return 0;
       }
@@ -864,6 +871,8 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
         channelmask = intArg[arg+1];
       else if(strArg[arg].compare("-c")==0)
 	channel = intArg[arg+1];
+      else if(strArg[arg].compare("-v")==0)
+        verbose = true;
       else if(strArg[arg].compare("-f")==0)
 	{
 	  sprintf(file_name_buffer, "%s%s", save_dir, strArg[arg+1].c_str());
@@ -903,13 +912,13 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
   char outbuf[25];
   char inbuf[25];
   int token;
-  while(thresh < thresh_stop)
+  while(thresh < thresh_stop) // <
     {
       mezzTester->Board.SetASDReg(DISC1_THR, thresh);
       mezzTester->Board.UpdateASD();
 
       runhits = 0;
-
+      
       sprintf(outbuf, "ts %04X 4", num_sweeps);
       mezzTester->Board.serial.Writeln(outbuf,false);
       mezzTester->Board.serial.Readln(inbuf, 25);
@@ -927,30 +936,34 @@ int AMC13_Launcher::fdac_sweep(std::vector<std::string> strArg,
 		 token & 0x00FF);
 	}
       else if (inbuf[0]=='N')
-	runhits = token;
+	{
+	  runhits = token;
+	  //printf("%d\t%d\t%d\n", thresh, dac, runhits);
+	}
       else
 	printf("Error: invalid repsonse from \"ts\": %s\n", inbuf);
       
-      if (runhits > 0)
+      if (runhits > (num_sweeps/2))
 	{
-	  thresh += thresh_delta;
+	  thresh += thresh_delta; // +=
+	  if (recording)
+	    fprintf(dacfile, "%d\t%d\n", 2*(thresh-127), dac);
+	  if (verbose)
+	    printf("%d\t%d\n", thresh, dac);
 	  continue;
 	}
-      if (recording)
-	fprintf(dacfile, "%d\t%d\n", 2*(thresh-127), dac);
-      // printf("%d\t%d\n", thresh, dac);
       dac += dac_delta;
       mezzTester->Board.SetAllDAC(dac);
       mezzTester->Board.UpdateDAC();
 
-      if (dac > 4095)
+      if (dac > 3095)
 	{
 	  //printf("Error: dac = %d, value to high\n", dac);
 	  printf("Error: %d\t%d\n", thresh, dac);
 	  break;
 	}
     } // end while loop
-  if (dac < 4095)
+  if (dac < 3095)
     printf("%d\t%d\n", thresh, dac);
   if (recording)
     fclose(dacfile);
@@ -1094,6 +1107,57 @@ int AMC13_Launcher::SetStrobePulsePeriod(std::vector<std::string> strArg,
     mezzTester->Board.SetStrobePulsePeriod(intArg[0]);
   return 0;
 }
+
+int AMC13_Launcher::gain_set(std::vector<std::string> strArg,
+		      std::vector<uint64_t> intArg)
+{
+  if (intArg.size() < 2)
+    return 0;
+
+  if (intArg[1] > 3)
+    return 0;
+
+  if (strArg[0].compare("a")==0)
+    mezzTester->Board.gainSet(ANALOG_CUR, intArg[1]);
+  else if (strArg[0].compare("d")==0)
+    mezzTester->Board.gainSet(DIGITAL_CUR, intArg[1]);
+
+  return 0;
+}	     
+
+int AMC13_Launcher::a(std::vector<std::string> strArg,
+		      std::vector<uint64_t> intArg)
+{
+  FILE * logfile = NULL;
+  logfile = fopen("/tmp/MezzTool.tmp/adc.log", "w");
+	  
+  mezzTester->getADC();
+  printf("analog votlage:\t\t%.2f V\n"
+	 "digital votlage:\t%.2f V\n"
+	 "analog current:\t\t%.2f mA\n"
+	 "digital current:\t%.2f mA\n"
+	 "total current:\t\t%.2f mA\n"
+	 "temperature:\t\t%.2f C\n",
+	 mezzTester->ADCRead.analogVoltage,
+	 mezzTester->ADCRead.digitalVoltage,
+	 mezzTester->ADCRead.analogCurrent*1000,
+	 mezzTester->ADCRead.digitalCurrent*1000,
+	 mezzTester->ADCRead.analogCurrent*1000 +
+	 mezzTester->ADCRead.digitalCurrent*1000,
+	 mezzTester->ADCRead.temperature);
+  
+  fprintf(logfile, "AV\tDV\tAC\tDC\tTEMP\n"
+	  "%f\t%f\t%f\t%f\t%f\n",
+	  mezzTester->ADCRead.analogVoltage,
+	  mezzTester->ADCRead.digitalVoltage,
+	  mezzTester->ADCRead.analogCurrent,
+	  mezzTester->ADCRead.digitalCurrent,
+	  mezzTester->ADCRead.temperature);
+  fclose(logfile);
+	  
+  return 0;
+}
+
 
 int AMC13_Launcher::load_test(std::vector<std::string> strArg,
 			      std::vector<uint64_t> intArg)
@@ -1300,7 +1364,7 @@ int AMC13_Launcher::strobe_test(std::vector<std::string> strArg,
 
       printf("Channel %d....", chan);
 
-      sprintf(outbuf, "ts %04X 4", num_sweeps);
+      sprintf(outbuf, "ts %04X", num_sweeps);
       mezzTester->Board.serial.Writeln(outbuf,false);
       mezzTester->Board.serial.Readln(inbuf, 25);
       token = strtol(inbuf+1, NULL, 16);

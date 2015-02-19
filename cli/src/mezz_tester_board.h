@@ -3,6 +3,7 @@
 
 #include "serial_io.h"
 #include "mezz_tester.h"
+#include <stdint.h>
 
 #define TDC_CLK 2.5e-8
 
@@ -71,6 +72,15 @@
 
 #define ALL_OFF 24
 
+#define DIGITAL_CUR 1
+#define ANALOG_CUR 2
+
+#define CUR_25 0x0
+#define CUR_50 0x1
+#define CUR_100 0x2
+#define CUR_200 0x3
+
+
 typedef struct TDCStatus_s 
 {
   int rfifo;
@@ -101,6 +111,15 @@ typedef struct HitReadout_s
   int errorflags;
 } HitReadout_s;
 
+typedef struct ADCReadout_s
+{
+  float analogCurrent;
+  float digitalCurrent;
+  float analogVoltage;
+  float digitalVoltage;
+  float temperature;
+} ADCReadout_s;
+
 class MezzTesterBoard
 {
   friend class MezzTester;
@@ -130,6 +149,8 @@ class MezzTesterBoard
   int  GetStrobePulsePeriod() {return StrobePulsePeriod;}
   void SetHitPeriod(int value) {HitPeriod=value;}
   int  GetHitPeriod() {return HitPeriod;}
+  void gainSet(int channel, int multiplier);
+  void ReadADC(ADCReadout_s * adcRead);
 
   void GetStatus(TDCStatus_s * TDCStatus);
   void UpdateBoard();
@@ -157,6 +178,7 @@ class MezzTesterBoard
   int TDCRegs[TDC_REG_NUM];
   int ASDRegs[ASD_REG_NUM];
   int DACRegs[DAC_REG_NUM];
+  int gain_set;
   int ChannelMask;
   int StrobePulsePeriod;
   int HitPeriod;

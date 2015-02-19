@@ -6,7 +6,7 @@ def gen_script():
     match_window = 1999
     thresh_start = 90
     thresh_stop = 165
-    thresh_delta = 2
+    thresh_delta = 1
 
     filename = "tsweep"
 
@@ -29,9 +29,10 @@ def gen_script():
         print >>outfile, mystr
 
         
-    dac_num_sweeps = 20
-    dac_dac_delta = 400
-    dac_thresh = 160
+    dac_num_sweeps = 30
+    dac_dac_delta = 20
+    dac_thresh = 170
+    dac_start = 1000
 
     dac_filename = "dsweep"
 
@@ -41,11 +42,14 @@ def gen_script():
         mystr += "-n " + str(dac_num_sweeps) + " "
         mystr += "-x " + str(dac_dac_delta) + " "
         mystr += "-t "  + str(dac_thresh) + " "
-        mystr += "-p 0xFFFFFF "
+        mystr += "-d " + str(dac_start) + " "
+        # mystr += "-p 0xFFFFFF "
+        mystr += "-p " + str(pow(2, i)) + " "
         mystr += "-c " + str(i) + " "
         mystr += "-f " + dac_filename + str(i)
         print >>outfile, mystr    
 
+    print >>outfile, "a"
     print >>outfile, "quit"
     outfile.close()
 
